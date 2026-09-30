@@ -255,6 +255,7 @@ const SIT_CLS = {'Fora de estoque':'b-fora','Crítico':'b-critico','Atenção':'
 const ICON = {
   perf:'<path d="M4 17l5-5 4 4 7-8"/><path d="M15 8h5v5"/>',
   estoque:'<path d="M3 8l9-5 9 5v8l-9 5-9-5V8z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/>',
+  lanc:'<path d="M12 3l2.2 5.3L20 9l-4.4 3.8L17 19l-5-3-5 3 1.4-6.2L4 9l5.8-.7L12 3z"/>',
   abc:'<line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="18" y1="20" x2="18" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/>',
   canais:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/>',
   area:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
@@ -264,6 +265,7 @@ const svg = (p, cls='') => `<svg viewBox="0 0 24 24" class="${cls}">${p}</svg>`;
 
 const VIEWS = [
   {id:'performance', label:'Performance', icon:'perf', title:'Performance de <em>produto</em>', sub:'Faturamento, preço, margem e ranking de heróis, neutros e ofensores'},
+  {id:'lancamentos', label:'Lançamentos', icon:'lanc', title:'Performance de <em>lançamentos</em>', sub:'Arranque, margem e estoque dos produtos lançados recentemente'},
   {id:'estoque', label:'Estoque e supply', icon:'estoque', title:'Estoque e <em>supply</em>', sub:'Posição, consumo médio, cobertura e ruptura por SKU'},
   {id:'abc', label:'Curva ABC', icon:'abc', title:'Curva <em>ABC</em>', sub:'Participação de cada item no faturamento do período'},
   {id:'canais', label:'Canais', icon:'canais', title:'Performance por <em>canal</em>', sub:'E-commerce, atacado e vendas presenciais/eventos'},
@@ -312,6 +314,7 @@ const S = {
   dataRef: hoje, janela: 90, categorias: null, catsDefault: null, catsAll: null,
   metricaCanal: 'vendas_liquidas', metricaArea: 'vendas_liquidas', areaSel: null,
   atualizado: null,
+  lancJanela: 180, lancNivel: 'produto', lancCanais: [], lancAreas: [], exclTransf: false, exclEventos: false,
 };
 const PRESETS = [['hoje','Hoje'],['ontem','Ontem'],['7d','Últimos 7 dias'],['mes','Este mês'],['mes_ant','Mês passado'],['90d','Últimos 90 dias'],['ano','Este ano'],['custom','Personalizado']];
 function aplicaPreset(p) {
@@ -526,7 +529,7 @@ function renderTop() {
   document.getElementById('title').innerHTML = v.title;
   document.getElementById('subtitle').textContent = v.sub;
   const tr = document.getElementById('top-right');
-  if (S.view === 'estoque') {
+  if (S.view === 'estoque' || S.view === 'lancamentos') {
     tr.innerHTML = `<span class="flabel">Posição em</span><input type="date" class="select" id="dref" value="${S.dataRef}" max="${hoje}">
       <span id="upd"></span><button class="btn sec sm" id="refresh">Atualizar agora</button>`;
     tr.querySelector('#dref').addEventListener('change', e => { if (e.target.value) { S.dataRef = e.target.value; renderView(); } });
@@ -583,7 +586,7 @@ function renderView() {
   renderToken++; destroyCharts();
   const f = document.getElementById('filters'); f.innerHTML = '';
   const v = document.getElementById('view'); v.innerHTML = '';
-  ({performance:viewPerformance, estoque:viewEstoque, abc:viewABC, canais:viewCanais, areas:viewAreas})[S.view](v, f);
+  ({performance:viewPerformance, lancamentos:viewLancamentos, estoque:viewEstoque, abc:viewABC, canais:viewCanais, areas:viewAreas})[S.view](v, f);
 }
 
 /* ================= VIEW: PERFORMANCE ================= */
@@ -688,6 +691,9 @@ function viewEstoque(v, f) {
   f.appendChild(jan);
   const ms = el(`<div class="fgroup ms"><span class="flabel">Categorias</span><button class="chip" id="ms-btn"></button><div class="ms-panel" hidden></div></div>`);
   f.appendChild(ms);
+  const cons = el(`<div class="fgroup"><span class="flabel">Tirar do consumo</span><div class="chips"><button class="chip ${S.exclTransf?'on':''}" data-x="t" title="Remessa para depósito fechado ou armazém geral">Transferências p/ depósito</button><button class="chip ${S.exclEventos?'on':''}" data-x="e" title="Remessa para venda fora do estabelecimento">Remessas p/ eventos</button></div></div>`);
+  cons.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.x === 't') S.exclTransf = !S.exclTransf; else S.exclEventos = !S.exclEventos; renderView(); });
+  f.appendChild(cons);
   const carga = el(`<span class="pill-badge" id="carga">Carregando…</span>`); f.appendChild(carga);
 
   rpc('estoque_ultima_carga', {}).then(r => {
@@ -716,7 +722,7 @@ function viewEstoque(v, f) {
 
   function carregar() {
     const pCats = S.categorias && S.catsAll && S.categorias.length === S.catsAll.length ? null : S.categorias;
-    const p = rpc('produto_estoque', {data_ref:S.dataRef, p_janela_dias:S.janela, p_categorias:pCats});
+    const p = rpc('produto_estoque', {data_ref:S.dataRef, p_janela_dias:S.janela, p_categorias:pCats, p_excluir_transferencias:S.exclTransf, p_excluir_eventos:S.exclEventos});
     p.finally(carimbo);
     const kp = div(v), al = div(v), g = div(v, 'grid g2'), c1 = div(g, 'card'), c2 = div(g, 'card'), ct = div(v, 'card');
     let tabela;
@@ -820,7 +826,7 @@ function viewEstoque(v, f) {
           {key:'ultima_entrada', label:'Últ. entrada', fmt:fDate},
         ]
       });
-      ct.insertAdjacentHTML('beforeend', `<div class="foot-note" style="margin-top:14px">Fonte: movimentações do WMS e status do cadastro de produtos. Produtos inativos sem estoque aparecem como "Descontinuado" e não entram nos alertas nem nos cards. Consumo médio/dia = saídas da janela ÷ dias em que o SKU teve estoque (mínimo 7), para não subestimar quem ficou em ruptura. Dias de estoque = estoque atual ÷ consumo médio/dia. Crítico &lt; 15 dias · Atenção 15–45 · Saudável 45–180 · Excesso &gt; 180. Curva ABC = últimos 12 meses (Tiny), só produtos ativos. Margem (herói/neutro/ofensor) = margem de contribuição de produto do SKU nas vendas da janela de consumo; "Sem venda" = sem venda no Tiny nesse período.</div>`);
+      ct.insertAdjacentHTML('beforeend', `<div class="foot-note" style="margin-top:14px">Fonte: movimentações do WMS e status do cadastro de produtos. Produtos inativos sem estoque aparecem como "Descontinuado" e não entram nos alertas nem nos cards. Consumo médio/dia = saídas da janela ÷ dias em que o SKU teve estoque (mínimo 7), para não subestimar quem ficou em ruptura. Por padrão entram todas as saídas; use \"Tirar do consumo\" para desconsiderar transferências para depósito e/ou remessas para eventos (o estoque atual não muda). Dias de estoque = estoque atual ÷ consumo médio/dia. Crítico &lt; 15 dias · Atenção 15–45 · Saudável 45–180 · Excesso &gt; 180. Curva ABC = últimos 12 meses (Tiny), só produtos ativos. Margem (herói/neutro/ofensor) = margem de contribuição de produto do SKU nas vendas da janela de consumo; "Sem venda" = sem venda no Tiny nesse período.</div>`);
     });
   }
 }
@@ -996,6 +1002,110 @@ function viewAreas(v, f) {
   block(cT, pPerf, rows => {
     cT.innerHTML = `<div class="card-head"><div><h3>SKUs ${S.areaSel ? 'da área <em>'+esc(S.areaSel)+'</em>' : 'de <em>todas as áreas</em>'}</h3><div class="hint">${S.areaSel ? 'clique no card da área de novo para ver todas' : 'clique num card de área para filtrar'}</div></div></div>`;
     makeTable(cT, tabelaSkuCfg(rows, 'skus_area'));
+  });
+}
+
+/* ================= VIEW: LANÇAMENTOS ================= */
+const CANAIS_SHOP = ['E-commerce','TikTok','Atacado','Outros apps'];
+const COR_SERIE = [COR.marrom, COR.bege, COR.laranja, COR.azul, COR.verde];
+function viewLancamentos(v, f) {
+  const jan = el(`<div class="fgroup"><span class="flabel">Lançados nos últimos</span><div class="seg">${[90,180,365].map(d => `<button data-d="${d}" class="${S.lancJanela===d?'on':''}">${d} dias</button>`).join('')}</div></div>`);
+  jan.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { S.lancJanela = +b.dataset.d; renderView(); } });
+  f.appendChild(jan);
+  const niv = el(`<div class="fgroup"><span class="flabel">Visão</span><div class="seg"><button data-n="produto" class="${S.lancNivel==='produto'?'on':''}">Por produto geral</button><button data-n="sku" class="${S.lancNivel==='sku'?'on':''}">Por SKU</button></div></div>`);
+  niv.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { S.lancNivel = b.dataset.n; renderView(); } });
+  f.appendChild(niv);
+  f.appendChild(chipsMulti('Canal', CANAIS_SHOP, S.lancCanais, x => { S.lancCanais = x; renderView(); }));
+  f.appendChild(chipsMulti('Área', AREAS, S.lancAreas, x => { S.lancAreas = x; renderView(); }, 'Todas'));
+
+  const params = {data_ref:S.dataRef, p_janela:S.lancJanela, p_canais:arr(S.lancCanais), p_nivel:S.lancNivel};
+  const pL = rpc('produto_lancamentos', params).then(rows => S.lancAreas.length ? rows.filter(r => S.lancAreas.includes(r.area_origem)) : rows);
+  const pC = rpc('produto_lancamentos_curva', {...params, p_dias:90});
+  Promise.allSettled([pL, pC]).then(carimbo);
+
+  const kp = div(v), g = div(v, 'grid g2'), cC = div(g, 'card'), cR = div(g, 'card'), ct = div(v, 'card');
+  g.style.gridTemplateColumns = 'minmax(0,1.6fr) minmax(0,1fr)';
+
+  block(kp, pL, rows => {
+    const vendidos = rows.filter(r => n(r.unidades) > 0);
+    const vl30 = sum(rows, 'vendas_liquidas_30d'), port = rows.length ? n(rows[0].vl_portfolio_30d) : null;
+    const mc = sum(vendidos, 'mc'), fl = sum(vendidos, 'faturamento_liquido');
+    const mcL = fl > 0 ? 100 * mc / fl : null, mcP = rows.length ? n(rows[0].mc_pct_portfolio_30d) : null;
+    const risco = rows.filter(r => n(r.unidades) > 0 && (n(r.estoque_atual) === 0 || (n(r.dias_estoque) !== null && n(r.dias_estoque) < 15)));
+    kp.innerHTML = `<div class="grid g4">
+      <div class="card stat"><div class="lbl">Lançamentos</div><div class="val">${fInt(rows.length)}</div><div class="sub">${rows.length - vendidos.length} ainda sem venda · lançados nos últimos ${S.lancJanela} dias</div></div>
+      <div class="card stat"><div class="lbl">Participação no faturamento</div><div class="val">${fPct(port ? 100 * vl30 / port : null)}</div><div class="sub">dos últimos 30 dias · ${fBRLk(vl30)} de ${fBRLk(port)}</div></div>
+      <div class="card stat"><div class="lbl">Margem de contribuição de produto</div><div class="val ${mcL !== null && mcL < 15 ? 'neg' : ''}">${fPct(mcL)}</div><div class="sub">lançamentos desde o lançamento · portfólio (30 dias): ${fPct(mcP)}</div></div>
+      <div class="card stat"><div class="lbl">Estoque em risco</div><div class="val ${risco.length ? 'neg' : ''}">${fInt(risco.length)}</div><div class="sub">${risco.length ? risco.slice(0,3).map(r => esc(r.item)).join(' · ') + (risco.length > 3 ? '…' : '') : 'nenhum lançamento com menos de 15 dias de estoque'}</div></div>
+    </div>`;
+  });
+
+  block(cC, Promise.all([pL, pC]), ([rows, curva]) => {
+    cC.innerHTML = `<div class="card-head"><div><h3>Curva de <em>arranque</em></h3><div class="hint">acumulado desde a 1ª venda · os 5 lançamentos que mais faturaram</div></div></div>`;
+    const top = rows.filter(r => n(r.unidades) > 0).slice(0, 5).map(r => r.item);
+    if (!top.length) { cC.insertAdjacentHTML('beforeend', '<div class="empty">Nenhum lançamento com venda nesse filtro.</div>'); return; }
+    const box = div(cC); let met = 'unidades_acum';
+    const draw = () => {
+      destroyIn(box);
+      const maxD = Math.max(...curva.filter(c => top.includes(c.item)).map(c => c.dia_rel), 0);
+      const labels = Array.from({length: maxD + 1}, (_, i) => i);
+      const ds = top.map((it, i) => { const m = new Map(curva.filter(c => c.item === it).map(c => [c.dia_rel, n(c[met])]));
+        return {label: it, data: labels.map(d => m.has(d) ? m.get(d) : null), borderColor: COR_SERIE[i], backgroundColor: COR_SERIE[i], borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, tension: 0.15, spanGaps: false}; });
+      const fmt = met === 'unidades_acum' ? fInt : fBRL;
+      mkChart(box, {type:'line', data:{labels, datasets:ds}, options:{maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
+        scales:{x:{grid:{display:false}, border:{display:false}, title:{display:true, text:'Dias desde a 1ª venda'}, ticks:{maxTicksLimit:10, callback:(v, i) => 'D+' + labels[i]}},
+                y:{grid:gridY, border:{display:false}, ticks:{callback:v => met === 'unidades_acum' ? fInt(v) : fBRLk(v)}}},
+        plugins:{refLines:{lines:[7,30,60].filter(d => d <= maxD).map(d => ({value:d, axis:'x', color:COR.borda}))},
+          tooltip:{callbacks:{title:it => 'D+' + it[0].label, label:it => `${it.dataset.label}: ${fmt(it.raw)}`}}}}}, 'tall');
+    };
+    const seg = el(`<div class="seg"><button data-m="unidades_acum" class="on">Unidades</button><button data-m="vendas_liquidas_acum">Faturamento</button></div>`);
+    seg.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); met = b.dataset.m; draw(); });
+    cC.querySelector('.card-head').appendChild(seg);
+    draw();
+    cC.insertAdjacentHTML('beforeend', legendHTML(top.map((it, i) => [it, COR_SERIE[i]])));
+  });
+
+  block(cR, pL, rows => {
+    cR.innerHTML = `<h3>Ritmo nos primeiros <em>30 dias</em></h3><div class="hint">unidades vendidas até D+30 · só quem já completou 30 dias de venda</div>`;
+    const r30 = rows.filter(r => n(r.un_d30) !== null).sort((a, b) => n(b.un_d30) - n(a.un_d30)).slice(0, 10);
+    if (!r30.length) { cR.insertAdjacentHTML('beforeend', '<div class="empty">Nenhum lançamento completou 30 dias de venda ainda.</div>'); return; }
+    mkChart(cR, {type:'bar', data:{labels:r30.map(r => r.item.length > 28 ? r.item.slice(0, 27) + '…' : r.item), datasets:[{data:r30.map(r => n(r.un_d30)), backgroundColor:COR.marrom, borderRadius:4, maxBarThickness:18}]},
+      options:{indexAxis:'y', maintainAspectRatio:false, scales:{x:{grid:gridY, border:{display:false}, ticks:{callback:v => fInt(v)}}, y:{grid:{display:false}, border:{display:false}}},
+        plugins:{tooltip:{callbacks:{title:it => r30[it[0].dataIndex].item, label:it => `${fInt(it.raw)} unidades até D+30`}}}}}, 'tall');
+  });
+
+  block(ct, pL, rows => {
+    ct.innerHTML = `<div class="card-head"><div><h3>Lançamentos</h3><div class="hint">vendas pela data do pedido (Shopify), desde a 1ª venda — inclui pré-venda</div></div></div>`;
+    makeTable(ct, {
+      rows, exportName:'lancamentos', search:['item','nome'], sort:{key:'vendas_liquidas', dir:'desc'},
+      pills:[{key:'classificacao', options:['Herói','Neutro','Ofensor','Sem venda'], all:'Toda margem'}],
+      selects:[{key:'area_origem',label:'Área'},{key:'categoria',label:'Categoria'},{key:'linha',label:'Linha'}],
+      rowClass: r => n(r.unidades) > 0 && (n(r.estoque_atual) === 0 || (n(r.dias_estoque) !== null && n(r.dias_estoque) < 15)) ? 'neg' : '',
+      columns:[
+        {key:'item', label:S.lancNivel === 'sku' ? 'SKU' : 'Produto', w:'wide', html:r => S.lancNivel === 'sku' ? `<div class="cell-sku">${esc(r.item)}</div><div class="cell-nm">${esc(r.nome)}</div>` : `<div style="font-size:13px">${esc(r.item)}</div><div class="cell-nm">${r.n_skus} SKU${r.n_skus > 1 ? 's' : ''}</div>`, csv:r => r.item},
+        {key:'area_origem', label:'Área'},
+        {key:'data_lancamento', label:'Lançamento', html:r => `${fDate(r.data_lancamento)}<div class="cell-nm">${r.origem_data === 'manual' ? 'data manual' : '1ª entrada'}</div>`, csv:r => r.data_lancamento},
+        {key:'primeira_venda', label:'1ª venda', fmt:fDate},
+        {key:'dias_vendendo', label:'Dias<br>vendendo', num:true, fmt:fInt},
+        {key:'unidades', label:'Unid.', num:true, fmt:fInt},
+        {key:'vendas_liquidas', label:'Faturamento', num:true, fmt:fBRL},
+        {key:'vendas_dia', label:'Vendas/<br>dia', num:true, fmt:v => n(v) === null ? '—' : n(v).toLocaleString('pt-BR', {maximumFractionDigits:1})},
+        {key:'un_d7', label:'Até<br>D+7', num:true, fmt:fInt},
+        {key:'un_d30', label:'Até<br>D+30', num:true, fmt:fInt},
+        {key:'un_d60', label:'Até<br>D+60', num:true, fmt:fInt},
+        {key:'un_d90', label:'Até<br>D+90', num:true, fmt:fInt},
+        {key:'preco_medio_venda', label:'Preço<br>médio', num:true, fmt:fBRL},
+        {key:'desconto_vs_capa_pct', label:'Desc. vs<br>capa', num:true, fmt:v => fPct(v)},
+        {key:'mc_pct', label:'MC de<br>produto %', num:true, html:r => `<span class="${n(r.mc_pct) < 0 ? 'neg-txt' : ''}">${fPct(r.mc_pct)}</span>`, csv:r => r.mc_pct},
+        {key:'classificacao', label:'Margem de<br>produto', html:r => badgeClasse(r.classificacao)},
+        {key:'estoque_atual', label:'Estoque', num:true, fmt:fInt},
+        {key:'pct_vendido', label:'%<br>vendido', num:true, fmt:v => fPct(v)},
+        {key:'dias_estoque', label:'Dias de<br>estoque', num:true, html:r => { const d = n(r.dias_estoque); return d === null ? '—' : `<span class="${d < 15 ? 'neg-txt' : ''}">${fInt(d)}</span>`; }, csv:r => r.dias_estoque},
+        {key:'previsao_ruptura', label:'Ruptura<br>prevista', fmt:fDate},
+        {key:'rank_portfolio_30d', label:'Posição no<br>portfólio', num:true, html:r => n(r.rank_portfolio_30d) === null ? '—' : `#${fInt(r.rank_portfolio_30d)}<div class="cell-nm">de ${fInt(r.skus_portfolio_30d)}</div>`, csv:r => r.rank_portfolio_30d},
+      ]
+    });
+    ct.insertAdjacentHTML('beforeend', `<div class="foot-note" style="margin-top:14px">Lançamento = produto cuja 1ª entrada no estoque foi nos últimos ${S.lancJanela} dias (ou data manual no cadastro, coluna data_lancamento). Vendas pela data do pedido na Shopify, contadas desde a 1ª venda — inclui pré-venda feita antes da chegada do estoque. D+7, D+30… = unidades vendidas até N dias depois da 1ª venda ("—" enquanto o produto não completa o período). % vendido = vendido ÷ (vendido + estoque atual). Dias de estoque = estoque ÷ média diária dos últimos 30 dias. Posição no portfólio = ranking de faturamento do SKU entre todos os produtos nos últimos 30 dias (na visão por produto, a melhor posição entre as cores). Margem de contribuição de produto com os mesmos % médios do DRE. Presencial/eventos não entra (não passa pela Shopify).</div>`);
   });
 }
 
