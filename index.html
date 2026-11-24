@@ -133,6 +133,24 @@ table.t th .arr{opacity:.7;margin-left:4px}
 table.t td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
 table.t td.num{font-family:var(--ff-mono);text-align:right;white-space:nowrap}
 table.t tr:hover td{background:var(--pp-polen-deep)}
+table.t th.hl{background:#3D2117}
+table.t td.hl{background:#FFF6E3;font-weight:bold;color:var(--pp-marrom)}
+.thumb{width:40px;height:40px;border-radius:4px;object-fit:cover;background:var(--pp-polen-deep);border:1px solid var(--border);flex-shrink:0}
+.thumb.ph{display:inline-flex;align-items:center;justify-content:center;font-family:var(--ff-sans);font-size:9px;color:var(--text-soft)}
+.skucell{display:flex;gap:10px;align-items:center}
+.mtx{width:100%;border-collapse:separate;border-spacing:6px;font-family:var(--ff-sans)}
+.mtx th{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-soft);font-weight:600;padding:4px;text-align:center}
+.mtx td{border-radius:6px;padding:10px 6px;text-align:center;cursor:pointer;border:2px solid transparent}
+.mtx td.on{border-color:var(--pp-marrom)}
+.mtx td .n{font-family:var(--ff-serif);font-size:22px;font-weight:bold;color:var(--pp-marrom);display:block;line-height:1.1}
+.mtx td .p{font-size:11px;color:var(--text-soft)}
+.mtx td.tot{cursor:default;background:var(--pp-polen-deep)}
+.regua{margin-bottom:16px}
+.regua .hd{display:flex;justify-content:space-between;font-family:var(--ff-sans);font-size:12px;margin-bottom:6px}
+.regua .hd b{color:var(--pp-marrom)}
+.regua .bar{display:flex;gap:2px;height:22px;border-radius:4px;overflow:hidden;background:var(--pp-polen-deep)}
+.regua .bar div{display:flex;align-items:center;justify-content:center;font-family:var(--ff-sans);font-size:11px;font-weight:600;min-width:0;white-space:nowrap;overflow:hidden}
+.b-nfora{background:#FBE8DE;color:var(--erro)}.b-nbaixo{background:#F6DDD2;color:#8F3A1B}.b-nmedio{background:#FCF0DC;color:#8A6420}.b-nalto{background:#EDEBD9;color:#6E7330}
 table.t tr.neg td{background:#FDF3EE}
 table.t tr.tot td{font-weight:bold;background:var(--pp-polen-deep)}
 .cell-sku{font-family:var(--ff-sans);font-weight:700;color:var(--pp-marrom);font-size:12.5px;white-space:nowrap}
@@ -266,7 +284,7 @@ const svg = (p, cls='') => `<svg viewBox="0 0 24 24" class="${cls}">${p}</svg>`;
 const VIEWS = [
   {id:'performance', label:'Performance', icon:'perf', title:'Performance de <em>produto</em>', sub:'Faturamento, preço, margem e ranking de heróis, neutros e ofensores'},
   {id:'lancamentos', label:'Lançamentos', icon:'lanc', title:'Performance de <em>lançamentos</em>', sub:'Arranque, margem e estoque dos produtos lançados recentemente'},
-  {id:'estoque', label:'Estoque e supply', icon:'estoque', title:'Estoque e <em>supply</em>', sub:'Posição, consumo médio, cobertura e ruptura por SKU'},
+  {id:'estoque', label:'Estoque e supply', icon:'estoque', title:'Estoque <em>atual</em>', sub:'Disponível = fulfillment − em expedição − reserva de emergência (10%, mín. 5) · nível por curva ABC'},
   {id:'abc', label:'Curva ABC', icon:'abc', title:'Curva <em>ABC</em>', sub:'Participação de cada item no faturamento do período'},
   {id:'canais', label:'Canais', icon:'canais', title:'Performance por <em>canal</em>', sub:'E-commerce, atacado e vendas presenciais/eventos'},
   {id:'areas', label:'Área de origem', icon:'area', title:'Performance por <em>área de origem</em>', sub:'Lab, Publishing, Sourcing e Experience'},
@@ -415,7 +433,9 @@ function periodoLabel(s) {
 function makeTable(host, cfg) {
   cfg.initPills = cfg.initPills || {};
   // cfg: columns[{key,label,num,fmt,html,sort}], rows, sort{key,dir}, search[keys], pills[{key,label,options}], selects[{key,label}], rowClass(r), exportName, total(rows)
-  const st = {q:'', sort:{...cfg.sort}, page:0, size:50, pills:{...cfg.initPills}, selects:{}};
+  const st = {q:'', sort:{...cfg.sort}, page:0, size:50, pills:{...cfg.initPills}, selects:{}, extra:null, hidden:new Set(cfg.defaultHidden || [])};
+  if (cfg.colsKey) { try { const sv = JSON.parse(localStorage.getItem('cols_' + cfg.colsKey) || 'null'); if (Array.isArray(sv)) st.hidden = new Set(sv); } catch (_) {} }
+  const visCols = () => cfg.columns.filter(c => c.fixed || !st.hidden.has(c.key));
   const root = document.createElement('div'); host.appendChild(root);
   let rows = cfg.rows || [];
   const bar = document.createElement('div'); bar.className = 'tbar'; root.appendChild(bar);
@@ -431,6 +451,7 @@ function makeTable(host, cfg) {
     });
     (cfg.selects||[]).forEach(s => { h += `<span data-sel="${s.key}"></span>`; });
     if (cfg.extra) h += cfg.extra;
+    if (cfg.colsKey) h += `<span data-cols></span>`;
     h += `<span class="grow"></span><span class="count" data-count></span>`;
     if (cfg.exportName) h += `<button class="btn sec sm" data-csv>Exportar CSV</button>`;
     bar.innerHTML = h;
@@ -450,6 +471,17 @@ function makeTable(host, cfg) {
       sp.replaceWith(msel(s.label, opts, st.selects[k] || [], v => { st.selects[k] = v; st.page = 0; draw(); }));
     });
     const c = bar.querySelector('[data-csv]'); if (c) c.addEventListener('click', exportCSV);
+    const cs = bar.querySelector('[data-cols]');
+    if (cs) {
+      const opts = cfg.columns.filter(c => !c.fixed);
+      const w = el(`<div class="ms"><button class="select ms-btn" type="button">Colunas ▾</button><div class="ms-panel" hidden><div class="acts"><button data-a="all" type="button">Mostrar todas</button></div>${opts.map(c => `<label><input type="checkbox" value="${c.key}" ${st.hidden.has(c.key)?'':'checked'}> ${c.label.replace(/<br>/g,' ')}</label>`).join('')}</div></div>`);
+      const btn = w.querySelector('.ms-btn'), panel = w.querySelector('.ms-panel');
+      const save = () => { try { localStorage.setItem('cols_' + cfg.colsKey, JSON.stringify([...st.hidden])); } catch (_) {} };
+      btn.addEventListener('click', () => panel.hidden = !panel.hidden);
+      panel.addEventListener('change', e => { const k = e.target.value; if (e.target.checked) st.hidden.delete(k); else st.hidden.add(k); save(); draw(); });
+      panel.addEventListener('click', e => { if (e.target.dataset && e.target.dataset.a === 'all') { st.hidden.clear(); panel.querySelectorAll('input').forEach(i => i.checked = true); save(); draw(); } });
+      cs.replaceWith(w);
+    }
     if (cfg.onBar) cfg.onBar(bar);
   }
   function filtered() {
@@ -459,6 +491,7 @@ function makeTable(host, cfg) {
     Object.entries(st.pills).forEach(([k,v]) => { if (v && v.length) r = r.filter(x => v.includes(x[k])); });
     Object.entries(st.selects).forEach(([k,v]) => { if (v && v.length) r = r.filter(x => v.includes(x[k])); });
     if (cfg.filter) r = r.filter(cfg.filter);
+    if (st.extra) r = r.filter(st.extra);
     const col = cfg.columns.find(c => c.key === st.sort.key);
     if (col) {
       const f = col.sort || (x => x[col.key]);
@@ -478,9 +511,10 @@ function makeTable(host, cfg) {
     const pages = Math.max(1, Math.ceil(r.length / st.size));
     if (st.page >= pages) st.page = pages - 1;
     const slice = r.slice(st.page*st.size, (st.page+1)*st.size);
-    const th = cfg.columns.map(c => `<th class="${c.num?'num':''}" data-k="${c.key}">${c.label}${st.sort.key===c.key ? `<span class="arr">${st.sort.dir==='asc'?'↑':'↓'}</span>`:''}</th>`).join('');
-    const td = slice.map(x => `<tr class="${cfg.rowClass ? cfg.rowClass(x) : ''}">${cfg.columns.map(c => `<td class="${c.num?'num':''} ${c.w||''}">${c.html ? c.html(x) : c.fmt ? c.fmt(x[c.key]) : esc(x[c.key] ?? '—')}</td>`).join('')}</tr>`).join('');
-    const tot = cfg.total && r.length ? `<tr class="tot">${cfg.columns.map((c,i) => { const t = cfg.total(r); return `<td class="${c.num?'num':''}">${t[c.key] !== undefined ? t[c.key] : (i===0?'Total':'')}</td>`; }).join('')}</tr>` : '';
+    const cols = visCols();
+    const th = cols.map(c => `<th class="${c.num?'num':''} ${c.hl?'hl':''}" data-k="${c.key}">${c.label}${st.sort.key===c.key ? `<span class="arr">${st.sort.dir==='asc'?'↑':'↓'}</span>`:''}</th>`).join('');
+    const td = slice.map(x => `<tr class="${cfg.rowClass ? cfg.rowClass(x) : ''}">${cols.map(c => `<td class="${c.num?'num':''} ${c.w||''} ${c.hl?'hl':''}">${c.html ? c.html(x) : c.fmt ? c.fmt(x[c.key]) : esc(x[c.key] ?? '—')}</td>`).join('')}</tr>`).join('');
+    const tot = cfg.total && r.length ? `<tr class="tot">${cols.map((c,i) => { const t = cfg.total(r); return `<td class="${c.num?'num':''}">${t[c.key] !== undefined ? t[c.key] : (i===0?'Total':'')}</td>`; }).join('')}</tr>` : '';
     scroll.innerHTML = r.length ? `<table class="t"><thead><tr>${th}</tr></thead><tbody>${td}${tot}</tbody></table>` : `<div class="empty">Nenhum item encontrado com esses filtros.</div>`;
     scroll.querySelectorAll('th').forEach(h => h.addEventListener('click', () => {
       const k = h.dataset.k; const col = cfg.columns.find(c => c.key === k);
@@ -497,7 +531,7 @@ function makeTable(host, cfg) {
   }
   function exportCSV() {
     const r = filtered();
-    const cols = cfg.columns.filter(c => !c.noExport);
+    const cols = visCols().filter(c => !c.noExport && !c.noCsv);
     const val = (c, x) => { let v = c.csv ? c.csv(x) : x[c.key]; if (v === null || v === undefined) return '';
       if (typeof v === 'number' || (c.num && !isNaN(Number(v)))) return String(v).replace('.', ',');
       return '"' + String(v).replace(/"/g,'""') + '"'; };
@@ -511,7 +545,9 @@ function makeTable(host, cfg) {
       const g = bar.querySelector(`[data-pill="${k}"]`);
       if (g) g.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v ? v.includes(b.dataset.v) : v.length === 0));
       draw(); },
-    redraw() { st.page = 0; draw(); }
+    redraw() { st.page = 0; draw(); },
+    setExtra(fn) { st.extra = fn; st.page = 0; draw(); },
+    filteredRows() { return filtered(); }
   };
   buildBar(); draw();
   return api;
@@ -722,111 +758,153 @@ function viewEstoque(v, f) {
 
   function carregar() {
     const pCats = S.categorias && S.catsAll && S.categorias.length === S.catsAll.length ? null : S.categorias;
-    const p = rpc('produto_estoque', {data_ref:S.dataRef, p_janela_dias:S.janela, p_categorias:pCats, p_excluir_transferencias:S.exclTransf, p_excluir_eventos:S.exclEventos});
+    const p = rpc('produto_estoque2', {data_ref:S.dataRef, p_janela_dias:S.janela, p_categorias:pCats, p_excluir_transferencias:S.exclTransf, p_excluir_eventos:S.exclEventos});
     p.finally(carimbo);
-    const kp = div(v), al = div(v), g = div(v, 'grid g2'), c1 = div(g, 'card'), c2 = div(g, 'card'), ct = div(v, 'card');
-    let tabela;
-    block(kp, p, rows => {
-      const at = rows.filter(r => r.status === 'Ativo');
-      const pos = at.filter(r => n(r.estoque_atual) > 0);
-      const cnt = s => at.filter(r => r.situacao === s).length;
-      const foraA = at.filter(r => r.situacao === 'Fora de estoque' && r.curva === 'A').length;
-      const desc = rows.filter(r => r.situacao === 'Descontinuado').length;
-      kp.innerHTML = `<div class="grid g6">
-        <div class="card stat small"><div class="lbl">Unidades em estoque</div><div class="val">${fInt(sum(pos,'estoque_atual'))}</div><div class="sub">em ${fInt(pos.length)} SKUs ativos</div></div>
-        <div class="card stat small"><div class="lbl">Fora de estoque</div><div class="val neg">${cnt('Fora de estoque')}</div><div class="sub">${foraA} da curva A · ${desc} inativos fora da conta</div></div>
-        <div class="card stat small"><div class="lbl">Críticos &lt; 15 dias</div><div class="val neg">${cnt('Crítico')}</div><div class="sub">SKUs ativos com giro</div></div>
-        <div class="card stat small"><div class="lbl">Atenção 15–45 dias</div><div class="val warn">${cnt('Atenção')}</div><div class="sub">planejar reposição</div></div>
-        <div class="card stat small"><div class="lbl">Excesso &gt; 180 dias</div><div class="val">${cnt('Excesso')}</div><div class="sub">mais de 6 meses de estoque</div></div>
-        <div class="card stat small"><div class="lbl">Sem giro</div><div class="val">${cnt('Sem giro')}</div><div class="sub">com estoque e sem saída na janela</div></div>
-      </div>`;
-      const risco = at.filter(r => r.curva === 'A' && (r.situacao === 'Fora de estoque' || r.situacao === 'Crítico'));
-      if (risco.length) al.innerHTML = `<div class="callout erro"><strong>Curva A em risco (produtos ativos):</strong> ${risco.map(r => `${esc(r.sku)} (${r.situacao === 'Fora de estoque' ? (r.dias_fora_estoque ?? '?') + ' dias fora' : (r.dias_estoque ?? '?') + ' dias de estoque'})`).join(' · ')}</div>`;
-    });
-    block(c1, p, rows => {
-      const at = rows.filter(r => r.status === 'Ativo');
-      const sits = SITUACOES.filter(s => s !== 'Descontinuado');
-      c1.innerHTML = `<h3>Cobertura por <em>curva</em></h3><div class="hint">SKUs ativos por situação · clique numa barra para filtrar a tabela</div>`;
-      mkChart(c1, {type:'bar', data:{labels:['Curva A','Curva B','Curva C'], datasets:sits.map(s => ({label:s, data:['A','B','C'].map(c => at.filter(r => r.curva === c && r.situacao === s).length), backgroundColor:COR_SIT[s], borderColor:'#FFFFFF', borderWidth:1, borderSkipped:false}))},
-        options:{indexAxis:'y', maintainAspectRatio:false, scales:{x:{stacked:true, grid:gridY, border:{display:false}}, y:{stacked:true, grid:{display:false}, border:{display:false}}},
-          plugins:{tooltip:{callbacks:{label:it => `${it.dataset.label}: ${it.raw} SKUs`}}},
-          onClick:(e, els) => { if (!els.length || !tabela) return; const d = els[0]; tabela.setFilter('curva', [['A','B','C'][d.index]]); tabela.setFilter('situacao', [sits[d.datasetIndex]]); tabela.setFilter('status', ['Ativo']); ct.scrollIntoView({behavior:'smooth'}); }}}, 'short');
-      c1.insertAdjacentHTML('beforeend', legendHTML(sits.map(s => [s, COR_SIT[s]])));
-    });
-    block(c2, p, rows => {
-      const at = rows.filter(r => r.status === 'Ativo');
-      c2.innerHTML = `<div class="card-head"><div><h3>Estoque por <em>classificação</em></h3><div class="hint">unidades em estoque de SKUs ativos</div></div><div class="seg" id="seg-cls"><button data-k="categoria" class="on">Categoria</button><button data-k="linha">Linha</button><button data-k="area_origem">Área</button></div></div>`;
-      const box = div(c2);
-      const draw = k => {
-        destroyIn(box);
-        const m = {}; at.forEach(r => { const gk = r[k] || '—'; m[gk] = m[gk] || {u:0, s:0}; if (n(r.estoque_atual) > 0) m[gk].u += n(r.estoque_atual); m[gk].s++; });
-        const e = Object.entries(m).filter(x => x[1].u > 0).sort((a,b) => b[1].u - a[1].u).slice(0, 12);
-        if (!e.length) { box.innerHTML = '<div class="empty">Sem estoque positivo nos filtros atuais.</div>'; return; }
-        mkChart(box, {type:'bar', data:{labels:e.map(x=>x[0]), datasets:[{data:e.map(x=>x[1].u), backgroundColor:COR.marrom, borderRadius:4, maxBarThickness:18}]},
-          options:{indexAxis:'y', maintainAspectRatio:false, scales:{x:{grid:gridY, border:{display:false}, ticks:{callback:v=>fInt(v)}}, y:{grid:{display:false}, border:{display:false}}},
-            plugins:{tooltip:{callbacks:{label:it => { const d = e[it.dataIndex][1]; return [`${fInt(d.u)} unidades`, `${d.s} SKUs ativos`]; }}}}}}, 'short');
-      };
-      draw('categoria');
-      c2.querySelector('#seg-cls').addEventListener('click', ev => { const b = ev.target.closest('button'); if (!b) return; c2.querySelectorAll('#seg-cls button').forEach(x => x.classList.toggle('on', x === b)); draw(b.dataset.k); });
-    });
-    // classificação de margem do SKU na mesma janela do consumo (vendas do Tiny)
+    // margem de produto do SKU na mesma janela do consumo (vendas do Tiny)
     const mIni = addDays(S.dataRef, -(S.janela - 1));
     const pPerf = rpc('produto_performance', {data_inicio:mIni, data_fim:S.dataRef, p_canais:null, p_areas:null, p_nivel:'sku', p_somente_ativos:false}).catch(e => { console.error('[dash] margem', e); return null; });
     const classe = (mc, fl, semc) => semc ? 'Sem custo' : !(fl > 0) ? 'Sem venda' : 100*mc/fl >= 37.5 ? 'Herói' : 100*mc/fl >= 15 ? 'Neutro' : 'Ofensor';
-    block(ct, Promise.all([p, pPerf]).then(([est, perf]) => {
+    const pAll = Promise.all([p, pPerf]).then(([est, perf]) => {
       const m = new Map((perf || []).map(r => [r.item, r]));
       return est.map(r => { const x = m.get(r.sku);
-        return {...r, _mc: x ? n(x.mc) : 0, _fl: x ? n(x.faturamento_liquido) : 0, _semc: !!(x && x.sem_custo), _vl: x ? n(x.vendas_liquidas) : 0,
+        return {...r, _mc: x ? n(x.mc) : 0, _fl: x ? n(x.faturamento_liquido) : 0, _semc: !!(x && x.sem_custo),
           classificacao: !perf ? '—' : x ? (x.classificacao === 'Só bonificação' ? 'Sem venda' : x.classificacao) : 'Sem venda',
           mc_pct: x ? n(x.mc_pct) : null}; });
-    }), rows => {
-      ct.innerHTML = `<div class="card-head"><div><h3>Posição por <em>SKU</em></h3><div class="hint">ordenado por risco: fora de estoque primeiro, depois críticos · padrão: só produtos ativos · margem dos últimos ${S.janela} dias (${fDate(mIni)} a ${fDate(S.dataRef)})</div></div></div>`;
-      const ordemSit = s => SITUACOES.indexOf(s);
+    });
+    const NIVEIS = ['FORA DE ESTOQUE','BAIXO','MÉDIO','ALTO'];
+    const NIV_CLS = {'FORA DE ESTOQUE':'b-nfora','BAIXO':'b-nbaixo','MÉDIO':'b-nmedio','ALTO':'b-nalto'};
+    const NIV_LBL = {'FORA DE ESTOQUE':'Fora','BAIXO':'Baixo','MÉDIO':'Médio','ALTO':'Alto'};
+    const badgeNiv = x => `<span class="bdg ${NIV_CLS[x]||'b-cinza'}">${esc(x === 'FORA DE ESTOQUE' ? 'Fora de estoque' : (x||'—'))}</span>`;
+    const ativos = rows => rows.filter(r => r.status === 'Ativo');
+    let tabela, matrizSel = null;
+
+    const kp = div(v), al = div(v), g = div(v, 'grid g2'), cM = div(g, 'card'), cR = div(g, 'card'), ct = div(v, 'card'), ck = div(v, 'card');
+    ct.style.marginBottom = '18px';
+
+    block(kp, p, rows => {
+      const at = ativos(rows), tot = at.length || 1;
+      const cnt = nv => at.filter(r => r.nivel === nv).length;
+      const aBaixo = at.filter(r => r.curva === 'A' && (r.nivel === 'BAIXO' || r.nivel === 'FORA DE ESTOQUE')).length;
+      const card = (lbl, val, sub, cls='') => `<div class="card stat small"><div class="lbl">${lbl}</div><div class="val ${cls}">${val}</div><div class="sub">${sub}</div></div>`;
+      kp.innerHTML = `<div class="grid g6">
+        ${card('SKUs monitorados', fInt(at.length), `${fInt(sum(at,'estoque_disponivel'))} unidades disponíveis`)}
+        ${card('Fora de estoque', fInt(cnt('FORA DE ESTOQUE')), fPct(100*cnt('FORA DE ESTOQUE')/tot) + ' dos SKUs', 'neg')}
+        ${card('Nível baixo', fInt(cnt('BAIXO')), fPct(100*cnt('BAIXO')/tot) + ' dos SKUs', 'neg')}
+        ${card('Nível médio', fInt(cnt('MÉDIO')), fPct(100*cnt('MÉDIO')/tot) + ' dos SKUs', 'warn')}
+        ${card('Nível alto', fInt(cnt('ALTO')), fPct(100*cnt('ALTO')/tot) + ' dos SKUs')}
+        ${card('Curva A baixa ou fora', fInt(aBaixo), 'prioridade de reposição', aBaixo ? 'neg' : '')}
+      </div>`;
+      const negs = at.filter(r => n(r.estoque_fulfillment) < 0);
+      const avisos = [];
+      if (rows.length && rows[0].eh_atual === false) avisos.push(`<div class="callout note">Data de referência no passado: fulfillment, em expedição e reserva só existem para hoje — nesta data o disponível é o saldo das movimentações.</div>`);
+      if (negs.length) avisos.push(`<div class="callout erro"><strong>${negs.length} SKUs com estoque negativo no fulfillment</strong> — provável ajuste de cadastro ou movimentação pendente: ${negs.map(r => `${esc(r.sku)} (${fInt(r.estoque_fulfillment)})`).join(' · ')}</div>`);
+      al.innerHTML = avisos.join('');
+    });
+
+    const drawMatriz = rows => {
+      const at = ativos(rows);
+      const cel = (c, nv) => { const tc = at.filter(r => r.curva === c).length, k = at.filter(r => r.curva === c && r.nivel === nv).length;
+        return `<td class="${NIV_CLS[nv]} ${matrizSel && matrizSel[0] === c && matrizSel[1] === nv ? 'on' : ''}" data-c="${c}" data-n="${nv}"><span class="n">${k}</span><span class="p">${fPct(tc ? 100*k/tc : 0)} da curva</span></td>`; };
+      cM.innerHTML = `<h3>Matriz curva ABC × <em>nível de estoque</em></h3><div class="hint">SKUs ativos · clique numa célula para filtrar a tabela, clique de novo para limpar</div>
+        <table class="mtx"><thead><tr><th>Curva</th>${NIVEIS.map(nv => `<th>${NIV_LBL[nv]}</th>`).join('')}<th>Total</th></tr></thead><tbody>
+        ${['A','B','C'].map(c => `<tr><th>${badgeCurva(c)}</th>${NIVEIS.map(nv => cel(c, nv)).join('')}<td class="tot"><span class="n">${at.filter(r => r.curva === c).length}</span></td></tr>`).join('')}
+        </tbody></table>`;
+      cM.querySelectorAll('td[data-c]').forEach(td => td.addEventListener('click', () => {
+        const sel = [td.dataset.c, td.dataset.n];
+        matrizSel = matrizSel && matrizSel[0] === sel[0] && matrizSel[1] === sel[1] ? null : sel;
+        if (tabela) { tabela.setFilter('curva', matrizSel ? [matrizSel[0]] : []); tabela.setFilter('nivel', matrizSel ? [matrizSel[1]] : []); if (matrizSel) tabela.setFilter('status', ['Ativo']); }
+        drawMatriz(rows); if (matrizSel) ct.scrollIntoView({behavior:'smooth'});
+      }));
+    };
+    block(cM, p, drawMatriz);
+
+    block(cR, Promise.all([p, sb.from('parametros_estoque').select('*').then(({data}) => data, () => null)]), ([rows, par]) => {
+      const at = ativos(rows);
+      const lim = {A:[100,200], B:[80,120], C:[50,80]};
+      (par || []).forEach(x => { lim[x.curva] = [n(x.limite_baixo), n(x.limite_medio)]; });
+      cR.innerHTML = `<h3>Régua de nível <em>por curva</em></h3><div class="hint">estoque disponível (unidades) que define cada nível · nº de SKUs ativos em cada faixa</div>` +
+        ['A','B','C'].map(c => { const [b, m] = lim[c]; const tc = at.filter(r => r.curva === c);
+          const segs = NIVEIS.map(nv => [nv, tc.filter(r => r.nivel === nv).length]);
+          return `<div class="regua"><div class="hd"><span>${badgeCurva(c)} <b style="margin-left:6px">Curva ${c}</b></span><span style="color:var(--text-soft)">Fora: 0 · Baixo: 1–${b - 1} · Médio: ${b}–${m - 1} · Alto: ≥ ${m}</span></div>
+            <div class="bar">${segs.filter(([, k]) => k > 0).map(([nv, k]) => `<div class="${NIV_CLS[nv]}" style="flex:${k} 1 0;min-width:62px" title="${NIV_LBL[nv]}: ${k} SKUs">${NIV_LBL[nv]} ${k}</div>`).join('') || '<div style="flex:1;color:var(--text-soft)">sem SKUs</div>'}</div></div>`; }).join('') +
+        '';
+    });
+
+    block(ct, pAll, rows => {
+      ct.innerHTML = `<div class="card-head"><div><h3>Posição por <em>SKU</em></h3><div class="hint">disponível = fulfillment − em expedição − reserva de emergência (10%, mín. 5) · margem dos últimos ${S.janela} dias (${fDate(mIni)} a ${fDate(S.dataRef)}) · padrão: só produtos ativos</div></div></div>`;
+      const ordemNiv = x => NIVEIS.indexOf(x);
       const agrupar = rs => {
         const m = new Map();
-        rs.forEach(r => { const k = r.nome_geral; if (!m.has(k)) m.set(k, {...r, sku: '', skus: 0, _sit: 99, estoque_atual: 0, _pos: 0, consumo_medio_dia: 0, consumo_medio_mes: 0, saidas_janela: 0, dias_fora_estoque: null, fora_desde: null, curva: null});
-          const g = m.get(k); g.skus++; g.sku = g.skus + ' SKUs'; g.estoque_atual += n(r.estoque_atual); g._pos += Math.max(0, n(r.estoque_atual));
-          g.consumo_medio_dia += n(r.consumo_medio_dia)||0; g.consumo_medio_mes += n(r.consumo_medio_mes)||0; g.saidas_janela += n(r.saidas_janela)||0;
-          if (ordemSit(r.situacao) < g._sit) { g._sit = ordemSit(r.situacao); g.situacao = r.situacao; }
+        rs.forEach(r => { const k = r.nome_geral; if (!m.has(k)) m.set(k, {...r, sku:'', skus:0, imagem_url:r.imagem_url, estoque_fulfillment:0, em_expedicao:0, reserva:0, estoque_disponivel:0, consumo_medio_dia:0, consumo_medio_mes:0, dias_fora_estoque:null, fora_desde:null, curva:null, risco_quebra:false, _mcS:0, _flS:0, _semcS:false, _nivO:99});
+          const g = m.get(k); g.skus++; g.sku = g.skus + ' SKUs'; g.nome_sku = g.skus + ' SKUs';
+          ['estoque_fulfillment','em_expedicao','reserva','estoque_disponivel','consumo_medio_dia','consumo_medio_mes'].forEach(c => g[c] += n(r[c]) || 0);
+          if (!g.imagem_url && r.imagem_url) g.imagem_url = r.imagem_url;
           if (r.curva && (!g.curva || r.curva < g.curva)) g.curva = r.curva;
           if (r.status === 'Ativo') g.status = 'Ativo';
+          if (ordemNiv(r.nivel) < g._nivO) { g._nivO = ordemNiv(r.nivel); g.nivel = r.nivel; }
+          g.risco_quebra = g.risco_quebra || r.risco_quebra;
           if (n(r.dias_fora_estoque) !== null && (g.dias_fora_estoque === null || n(r.dias_fora_estoque) > g.dias_fora_estoque)) { g.dias_fora_estoque = n(r.dias_fora_estoque); g.fora_desde = r.fora_desde; }
           if (r.ultima_entrada && (!g.ultima_entrada || r.ultima_entrada > g.ultima_entrada)) g.ultima_entrada = r.ultima_entrada;
-          g._mcS = (g._mcS||0) + (r._mc||0); g._flS = (g._flS||0) + (r._fl||0); g._semcS = g._semcS || r._semc; });
-        return [...m.values()].map(g => { g.dias_estoque = g._pos > 0 && g.consumo_medio_dia > 0 ? Math.round(g._pos / g.consumo_medio_dia) : null;
-          g.previsao_ruptura = g.dias_estoque !== null ? addDays(S.dataRef, g.dias_estoque) : null; g.nome_sku = g.skus + ' SKUs'; g.consumo_medio_dia = Math.round(g.consumo_medio_dia*100)/100;
-          g.classificacao = classe(g._mcS, g._flS, g._semcS); g.mc_pct = g._flS > 0 ? Math.round(1000*g._mcS/g._flS)/10 : null; return g; });
+          g._mcS += r._mc || 0; g._flS += r._fl || 0; g._semcS = g._semcS || r._semc; });
+        return [...m.values()].map(g => { g.consumo_medio_dia = Math.round(g.consumo_medio_dia * 100) / 100;
+          g.dias_estoque = g.estoque_disponivel > 0 && g.consumo_medio_dia > 0 ? Math.round(g.estoque_disponivel / g.consumo_medio_dia) : null;
+          g.classificacao = classe(g._mcS, g._flS, g._semcS); g.mc_pct = g._flS > 0 ? Math.round(1000 * g._mcS / g._flS) / 10 : null; return g; });
       };
-      let agrupado = false;
-      const base = rows.map(r => ({...r, _ord: ordemSit(r.situacao)}));
+      let agrupado = false, soRisco = false;
+      const prep = rs => rs.map(r => ({...r, _niv: ordemNiv(r.nivel)}));
+      const base = prep(rows);
+      const nRisco = rows.filter(r => r.risco_quebra).length;
       const statusOpts = [...new Set(rows.map(r => r.status))].sort();
       tabela = makeTable(ct, {
-        rows: base, exportName:'estoque', search:['sku','nome_sku','nome_geral'], sort:{key:'_ord', dir:'asc'},
-        initPills:{status:['Ativo']},
-        pills:[{key:'status', options:statusOpts, all:'Todos os status'}, {key:'curva', options:['A','B','C'], all:'Todas as curvas'}, {key:'situacao', options:SITUACOES, all:'Todas as situações'}, {key:'classificacao', options:['Herói','Neutro','Ofensor','Sem custo','Sem venda'], all:'Toda margem'}],
+        rows: base, exportName:'estoque_posicao', search:['sku','nome_sku','nome_geral'], sort:{key:'_niv', dir:'asc'},
+        initPills:{status:['Ativo']}, colsKey:'estoque_v2',
+        pills:[{key:'status', options:statusOpts, all:'Todos os status'}, {key:'curva', options:['A','B','C'], all:'Todas as curvas'}, {key:'nivel', options:NIVEIS, all:'Todos os níveis'}, {key:'classificacao', options:['Herói','Neutro','Ofensor','Sem custo','Sem venda'], all:'Toda margem'}],
         selects:[{key:'categoria',label:'Categoria'},{key:'linha',label:'Linha'},{key:'area_origem',label:'Área'}],
-        extra:`<label class="toggle"><input type="checkbox" data-agr> Agrupar por produto geral</label>`,
-        onBar: bar => { const t = bar.querySelector('[data-agr]'); t.checked = agrupado; t.addEventListener('change', () => { agrupado = t.checked; tabela.setRows(agrupado ? agrupar(rows).map(r => ({...r, _ord: ordemSit(r.situacao)})) : base); }); },
-        rowClass: r => r.status === 'Ativo' && r.curva === 'A' && (r.situacao === 'Fora de estoque' || r.situacao === 'Crítico') ? 'neg' : '',
+        extra:`<label class="toggle"><input type="checkbox" data-risco> Risco de quebra (${nRisco})</label><label class="toggle"><input type="checkbox" data-agr> Agrupar por nome geral</label>`,
+        onBar: bar => {
+          const t = bar.querySelector('[data-agr]'); t.checked = agrupado;
+          t.addEventListener('change', () => { agrupado = t.checked; tabela.setRows(agrupado ? prep(agrupar(rows)) : base); });
+          const rk = bar.querySelector('[data-risco]'); rk.checked = soRisco;
+          rk.addEventListener('change', () => { soRisco = rk.checked; tabela.setExtra(soRisco ? (r => r.risco_quebra) : null); });
+        },
+        rowClass: r => r.status === 'Ativo' && r.curva === 'A' && (r.nivel === 'FORA DE ESTOQUE' || r.nivel === 'BAIXO') ? 'neg' : '',
         columns:[
-          {key:'sku', label:'SKU', w:'wide', html:r => `<div class="cell-sku">${esc(r.sku)}</div><div class="cell-nm">${esc(r.nome_sku)}</div>`},
+          {key:'sku', label:'SKU', w:'wide', fixed:true, html:r => `<div class="skucell">${r.imagem_url ? `<img class="thumb" loading="lazy" src="${esc(r.imagem_url)}" alt="">` : '<span class="thumb ph">sem foto</span>'}<div><div class="cell-sku">${esc(r.sku)}</div>${r.risco_quebra ? '<span class="bdg b-fora" title="Site anuncia mais do que o disponível">risco de quebra</span>' : ''}</div></div>`},
+          {key:'nome_sku', label:'Nome por SKU', w:'mid', html:r => `<span class="cell-nm">${esc(r.nome_sku)}</span>`},
           {key:'nome_geral', label:'Nome geral', w:'mid', html:r => `<span class="cell-nm">${esc(r.nome_geral)}</span>`},
-          {key:'status', label:'Status', html:r => `<span class="bdg ${r.status==='Ativo'?'b-saudavel':'b-cinza'}">${esc(r.status)}</span>`},
-          {key:'curva', label:'Curva', html:r => r.curva ? badgeCurva(r.curva) : '—'},
-          {key:'categoria', label:'Categoria'}, {key:'linha', label:'Linha'}, {key:'area_origem', label:'Área'},
-          {key:'estoque_atual', label:'Estoque', num:true, html:r => `<span class="${n(r.estoque_atual)<0?'neg-txt':''}">${fInt(r.estoque_atual)}</span>`, csv:r => r.estoque_atual},
-          {key:'consumo_medio_dia', label:'Consumo/dia', num:true, fmt:v => n(v) === null ? '—' : n(v).toLocaleString('pt-BR',{maximumFractionDigits:2})},
-          {key:'consumo_medio_mes', label:'Consumo/mês', num:true, fmt:fInt},
-          {key:'dias_estoque', label:'Dias de<br>estoque', num:true, fmt:fInt},
-          {key:'previsao_ruptura', label:'Ruptura<br>prevista', fmt:fDate},
-          {key:'_ord', label:'Situação', html:r => badgeSit(r.situacao), csv:r => r.situacao},
+          {key:'categoria', label:'Categoria'},
+          {key:'curva', label:'Curva', html:r => r.curva ? badgeCurva(r.curva) : '<span class="bdg b-cinza">Inativo</span>'},
+          {key:'_niv', label:'Nível', html:r => badgeNiv(r.nivel), csv:r => r.nivel},
+          {key:'estoque_fulfillment', label:'Estoque<br>fulfillment', num:true, html:r => `<span class="${n(r.estoque_fulfillment)<0?'neg-txt':''}">${fInt(r.estoque_fulfillment)}</span>`, csv:r => r.estoque_fulfillment},
+          {key:'em_expedicao', label:'Em<br>expedição', num:true, fmt:fInt},
+          {key:'reserva', label:'Reserva de<br>emergência', num:true, fmt:fInt},
+          {key:'estoque_disponivel', label:'Estoque<br>disponível', num:true, hl:true, fmt:fInt},
+          {key:'consumo_medio_dia', label:'Consumo/<br>dia', num:true, fmt:v => n(v) === null ? '—' : n(v).toLocaleString('pt-BR',{maximumFractionDigits:2})},
+          {key:'consumo_medio_mes', label:'Consumo/<br>mês', num:true, fmt:fInt},
+          {key:'dias_estoque', label:'Dias de<br>estoque', num:true, html:r => { const d = n(r.dias_estoque); return d === null ? '—' : `<span class="${d < 15 ? 'neg-txt' : ''}">${fInt(d)}</span>`; }, csv:r => r.dias_estoque},
           {key:'classificacao', label:'Margem<br>de produto', html:r => badgeClasse(r.classificacao)},
           {key:'mc_pct', label:'MC de<br>produto %', num:true, html:r => `<span class="${n(r.mc_pct)<0?'neg-txt':''}">${fPct(r.mc_pct)}</span>`, csv:r => r.mc_pct},
           {key:'dias_fora_estoque', label:'Fora há', num:true, html:r => n(r.dias_fora_estoque) === null ? '—' : `<span class="${r.status==='Ativo'?'neg-txt':''}">${fInt(r.dias_fora_estoque)} dias</span><div class="cell-nm">desde ${fDate(r.fora_desde)}</div>`, csv:r => r.dias_fora_estoque},
-          {key:'ultima_entrada', label:'Últ. entrada', fmt:fDate},
+          {key:'ultima_entrada', label:'Última<br>entrada', fmt:fDate},
         ]
       });
-      ct.insertAdjacentHTML('beforeend', `<div class="foot-note" style="margin-top:14px">Fonte: movimentações do WMS e status do cadastro de produtos. Produtos inativos sem estoque aparecem como "Descontinuado" e não entram nos alertas nem nos cards. Consumo médio/dia = saídas da janela ÷ dias em que o SKU teve estoque (mínimo 7), para não subestimar quem ficou em ruptura. Por padrão entram todas as saídas; use \"Tirar do consumo\" para desconsiderar transferências para depósito e/ou remessas para eventos (o estoque atual não muda). Dias de estoque = estoque atual ÷ consumo médio/dia. Crítico &lt; 15 dias · Atenção 15–45 · Saudável 45–180 · Excesso &gt; 180. Curva ABC = últimos 12 meses (Tiny), só produtos ativos. Margem (herói/neutro/ofensor) = margem de contribuição de produto do SKU nas vendas da janela de consumo; "Sem venda" = sem venda no Tiny nesse período.</div>`);
+      ct.insertAdjacentHTML('beforeend', `<div class="foot-note" style="margin-top:14px">Estoque fulfillment = saldo do WMS hoje. Disponível = fulfillment − em expedição − reserva de emergência (10% do saldo, mínimo 5 unidades). Nível pelo disponível e pela curva (régua acima); fora de estoque = disponível zerado. Risco de quebra = o site anuncia mais unidades do que o disponível. Consumo médio/dia = saídas da janela ÷ dias com estoque (mínimo 7); dias de estoque = disponível ÷ consumo/dia. Curva ABC = últimos 12 meses (Tiny), só produtos ativos. Margem = margem de contribuição de produto do SKU nas vendas da janela de consumo. Use "Colunas" para ocultar ou mostrar colunas (a escolha fica salva neste navegador).</div>`);
+      if (matrizSel) { tabela.setFilter('curva', [matrizSel[0]]); tabela.setFilter('nivel', [matrizSel[1]]); }
+    });
+
+    block(ck, rpc('estoque_kits_painel', {}), kits => {
+      ck.innerHTML = `<div class="card-head"><div><h3>Kits e <em>caixas misteriosas</em></h3><div class="hint">quanto está anunciado no site hoje e quantos kits os itens em estoque permitem montar</div></div></div>`;
+      makeTable(ck, {
+        rows: kits.map(k => ({...k, _folga: n(k.poderia_vender) - n(k.no_site)})), exportName:'kits', search:['kit_sku','nome','item_limitante'], sort:{key:'no_site', dir:'desc'},
+        rowClass: r => n(r.poderia_vender) < n(r.no_site) ? 'neg' : '',
+        columns:[
+          {key:'nome', label:'Kit', w:'wide', html:r => `<div style="font-size:13px">${esc(r.nome)}</div><div class="cell-nm">${esc(r.kit_sku)} · ${r.itens} itens${r.publicado ? '' : ' · oculto'}</div>`, csv:r => r.nome},
+          {key:'no_site', label:'No site<br>hoje', num:true, fmt:fInt},
+          {key:'poderia_vender', label:'Itens permitem<br>montar', num:true, html:r => `<span class="${n(r.poderia_vender) < n(r.no_site) ? 'neg-txt' : ''}">${fInt(r.poderia_vender)}</span>`, csv:r => r.poderia_vender},
+          {key:'item_limitante', label:'Item que limita', w:'mid', html:r => `<span class="cell-nm">${esc(r.item_limitante || '—')}</span>`},
+        ]
+      });
+      ck.insertAdjacentHTML('beforeend', `<div class="foot-note" style="margin-top:14px">Linha destacada = o site anuncia mais kits do que os itens disponíveis permitem montar. "Item que limita" é o componente com menos unidades disponíveis para o kit.</div>`);
     });
   }
 }
