@@ -212,6 +212,12 @@ td.mid{min-width:150px}
 .sk{background:linear-gradient(90deg,var(--pp-polen-deep),#FBF6E8,var(--pp-polen-deep));background-size:200% 100%;animation:sh 1.4s infinite;border-radius:var(--r-md);min-height:110px}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .err{font-family:var(--ff-sans);font-size:13px;color:var(--erro);padding:18px;background:#FBEAE5;border-radius:var(--r-md)}
+.sim-ed{border:1px solid var(--border);border-radius:var(--r-sm);padding:18px;margin:0 0 18px;background:#FFFCF6}
+.sim-row{display:flex;gap:14px;flex-wrap:wrap}.sim-row .field{margin-bottom:12px}
+.sim-ed td .input{padding:7px 9px;font-size:13px}
+.sim-acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+.sim-msg{font-family:var(--ff-sans);font-size:12.5px;color:var(--erro)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
 .empty{font-family:var(--ff-sans);font-size:13px;color:var(--text-soft);padding:24px;text-align:center}
 
 @media (max-width:1100px){.g6{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -798,7 +804,8 @@ function viewEstoque(v, f) {
     const ativos = rows => rows.filter(r => r.status === 'Ativo');
     let tabela, matrizSel = null;
 
-    const kp = div(v), al = div(v), g = div(v, 'grid g2'), cM = div(g, 'card'), cR = div(g, 'card'), ct = div(v, 'card'), ck = div(v, 'card');
+    const kp = div(v), al = div(v), g = div(v, 'grid g2'), cM = div(g, 'card'), cR = div(g, 'card'), ct = div(v, 'card'), ck = div(v, 'card'), cs = div(v, 'card');
+    simulacoes(cs);
     ct.style.marginBottom = '18px';
 
     block(kp, p, rows => {
@@ -915,7 +922,7 @@ function viewEstoque(v, f) {
     });
 
     block(ck, rpc('estoque_kits_painel', {}), kits => {
-      ck.innerHTML = `<div class="card-head"><div><h3>Kits e <em>caixas misteriosas</em></h3><div class="hint">quanto está anunciado no site hoje e quantos kits os itens em estoque permitem montar</div></div></div>`;
+      ck.innerHTML = `<div class="card-head"><div><h3>Kits e <em>caixas misteriosas</em></h3><div class="hint">kits já vendidos (somente leitura) · quanto está anunciado no site hoje e quantos kits os itens em estoque permitem montar</div></div></div>`;
       makeTable(ck, {
         rows: kits.map(k => ({...k, _folga: n(k.poderia_vender) - n(k.no_site)})), exportName:'kits', search:['kit_sku','nome','item_limitante'], sort:{key:'no_site', dir:'desc'},
         rowClass: r => n(r.poderia_vender) < n(r.no_site) ? 'neg' : '',
@@ -1248,6 +1255,138 @@ function mostrar(session) {
 }
 sb.auth.getSession().then(({data}) => mostrar(data.session));
 sb.auth.onAuthStateChange((_ev, session) => mostrar(session));
+/* ================= SIMULAÇÃO DE CAIXAS ================= */
+function simulacoes(host) {
+  const tk = renderToken;
+  host.innerHTML = `<div class="card-head"><div><h3>Simular <em>nova caixa</em></h3><div class="hint">teste se os itens em estoque montam a próxima caixa ou kit · as simulações ficam salvas para todo o time · kits reais (acima) não são editáveis</div></div><button class="btn sm" data-novo>+ Nova simulação</button></div><div data-editor></div><div data-lista><div class="sk"></div></div>`;
+  const ed = host.querySelector('[data-editor]'), lista = host.querySelector('[data-lista]');
+  let base = [], mapa = new Map(), sims = [];
+  const calc = s => {
+    const itens = (s.itens || []).filter(i => i.sku).map(i => { const b = mapa.get(i.sku) || {}; const q = Math.max(1, +i.qtd || 1);
+      const disp = n(b.disponivel) || 0, nec = q * (+s.quantidade || 0);
+      return {...i, qtd:q, nome:b.nome || i.sku, disp, nec, falta: Math.max(0, nec - disp), possiveis: Math.floor(disp / q), custo: n(b.custo) || 0, sub: (n(b.custo) || 0) * q, semCusto: !(n(b.custo) > 0), img: b.imagem_url}; });
+    const lim = itens.length ? itens.reduce((a, b) => b.possiveis < a.possiveis ? b : a) : null;
+    const custo = itens.reduce((t, i) => t + i.sub, 0), preco = n(s.preco_venda);
+    return {itens, lim, possiveis: lim ? lim.possiveis : 0, custo, custoTotal: custo * (+s.quantidade || 0), preco,
+      margem: preco > 0 ? 100 * (preco - custo) / preco : null, ok: itens.length > 0 && itens.every(i => i.falta === 0), semCusto: itens.some(i => i.semCusto)};
+  };
+  const okBadge = c => !c.itens.length ? '<span class="bdg b-cinza">sem itens</span>' : c.ok ? `<span class="bdg b-heroi">${svg(ICON.up)}dá para montar</span>` : `<span class="bdg b-ofensor">${svg(ICON.down)}falta estoque</span>`;
+
+  function desenharLista() {
+    if (!sims.length) { lista.innerHTML = '<div class="empty">Nenhuma caixa simulada ainda. Clique em "+ Nova simulação" para testar uma.</div>'; return; }
+    lista.innerHTML = '';
+    makeTable(lista, {
+      rows: sims.map(s => { const c = calc(s); return {...s, _c:c, _itens:c.itens.length, _poss:c.possiveis, _custo:c.custo, _margem:c.margem, _lim:c.lim ? c.lim.nome : null}; }),
+      exportName:'caixas_simuladas', search:['nome','criado_por'], sort:{key:'criado_em', dir:'desc'},
+      rowClass: r => r._c.ok ? '' : 'neg',
+      columns:[
+        {key:'nome', label:'Caixa simulada', w:'wide', html:r => `<div style="font-size:13px">${esc(r.nome)}</div><div class="cell-nm">${r._itens} itens · ${esc(r.criado_por || '')}${r.criado_em ? ' · ' + fDate(String(r.criado_em).slice(0,10)) : ''}</div>`, csv:r => r.nome},
+        {key:'quantidade', label:'Caixas<br>planejadas', num:true, fmt:fInt},
+        {key:'_poss', label:'Estoque<br>permite', num:true, html:r => `<span class="${r._poss < r.quantidade ? 'neg-txt' : ''}">${fInt(r._poss)}</span>`, csv:r => r._poss},
+        {key:'_lim', label:'Item que limita', w:'mid', html:r => `<span class="cell-nm">${esc(r._lim || '—')}</span>`},
+        {key:'_custo', label:'Custo<br>por caixa', num:true, fmt:fBRL},
+        {key:'preco_venda', label:'Preço<br>sugerido', num:true, fmt:fBRL},
+        {key:'_margem', label:'Margem<br>bruta %', num:true, html:r => `<span class="${n(r._margem) < 0 ? 'neg-txt' : ''}">${fPct(r._margem)}</span>`, csv:r => r._margem},
+        {key:'criado_em', label:'Situação', html:r => okBadge(r._c), csv:r => r._c.ok ? 'dá para montar' : 'falta estoque'},
+        {key:'id', label:'', noCsv:true, html:r => `<button class="btn sec sm" data-edit="${r.id}">Editar</button>`},
+      ]
+    });
+    lista.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => abrir(sims.find(s => s.id === b.dataset.edit))));
+  }
+
+  function abrir(sim) {
+    const s = sim ? JSON.parse(JSON.stringify(sim)) : {nome:'', quantidade:100, preco_venda:null, itens:[{sku:'', qtd:1}]};
+    const opts = base.map(b => `<option value="${esc(b.sku)}">${esc(b.nome)} · ${fInt(b.disponivel)} disp.</option>`).join('');
+    ed.innerHTML = `<div class="sim-ed">
+      <div class="sim-row">
+        <label class="field" style="flex:2;min-width:220px"><span>Nome da caixa</span><input class="input" data-f="nome" value="${esc(s.nome)}" placeholder="Ex.: Caixa Misteriosa de Natal"></label>
+        <label class="field" style="width:160px"><span>Quantidade de caixas</span><input class="input" type="number" min="0" step="1" data-f="quantidade" value="${s.quantidade ?? ''}"></label>
+        <label class="field" style="width:180px"><span>Preço de venda sugerido</span><input class="input" type="number" min="0" step="0.01" data-f="preco_venda" value="${s.preco_venda ?? ''}" placeholder="R$"></label>
+      </div>
+      <datalist id="sim-skus">${opts}</datalist>
+      <div class="tscroll" style="max-height:none"><table class="t"><thead><tr><th>Produto (SKU)</th><th class="num">Qtd por<br>caixa</th><th class="num">Disponível</th><th class="num">Necessário</th><th class="num">Caixas<br>possíveis</th><th class="num">Custo<br>unitário</th><th class="num">Custo na<br>caixa</th><th></th></tr></thead><tbody data-itens></tbody></table></div>
+      <button class="btn sec sm" data-add style="margin-top:10px">+ Adicionar produto</button>
+      <div class="sim-res" data-res></div>
+      <div class="sim-acts"><button class="btn" data-salvar>Salvar simulação</button><button class="btn sec" data-cancelar>Cancelar</button>${sim ? '<button class="btn sec" data-excluir style="margin-left:auto;color:var(--erro);border-color:#F2C9BB">Excluir simulação</button>' : ''}<span class="sim-msg" data-msg></span></div>
+    </div>`;
+    const tb = ed.querySelector('[data-itens]'), res = ed.querySelector('[data-res]'), msg = ed.querySelector('[data-msg]');
+    const atualizar = () => {
+      const c = calc(s);
+      tb.querySelectorAll('tr').forEach((tr, i) => {
+        const it = s.itens[i];
+        const b = mapa.get(it.sku), q = Math.max(1, +it.qtd || 1);
+        const disp = b ? n(b.disponivel) : null, nec = q * (+s.quantidade || 0), poss = b ? Math.floor(disp / q) : null;
+        const isLim = c.lim && c.lim.sku === it.sku && it.sku;
+        tr.classList.toggle('neg', !!b && disp < nec);
+        tr.querySelector('[data-c="disp"]').textContent = b ? fInt(disp) : '—';
+        tr.querySelector('[data-c="nec"]').innerHTML = b ? (disp < nec ? `<span class="neg-txt">${fInt(nec)}</span><div class="cell-nm">faltam ${fInt(nec - disp)}</div>` : fInt(nec)) : '—';
+        tr.querySelector('[data-c="poss"]').innerHTML = b ? `${fInt(poss)}${isLim ? '<div><span class="bdg b-ofensor">limita</span></div>' : ''}` : '—';
+        tr.querySelector('[data-c="cu"]').innerHTML = b ? (n(b.custo) > 0 ? fBRL(b.custo) : '<span class="cell-nm">sem custo</span>') : '—';
+        tr.querySelector('[data-c="sub"]').textContent = b ? fBRL((n(b.custo) || 0) * q) : '—';
+        tr.querySelector('[data-c="nm"]').textContent = b ? b.nome : (it.sku ? 'SKU não encontrado' : '');
+      });
+      res.innerHTML = `<div class="grid g4" style="margin:16px 0 0">
+        <div class="card stat small" style="box-shadow:none;border:1px solid var(--border)"><div class="lbl">Estoque permite montar</div><div class="val ${c.possiveis < (+s.quantidade || 0) ? 'neg' : ''}">${fInt(c.possiveis)} caixas</div><div class="sub">${c.lim ? 'limitado por ' + esc(c.lim.nome) : 'adicione produtos'}</div></div>
+        <div class="card stat small" style="box-shadow:none;border:1px solid var(--border)"><div class="lbl">Custo por caixa</div><div class="val">${fBRL(c.custo)}</div><div class="sub">${c.semCusto ? '<span class="neg-txt">há item sem custo cadastrado</span>' : 'custo atual dos produtos'}</div></div>
+        <div class="card stat small" style="box-shadow:none;border:1px solid var(--border)"><div class="lbl">Custo total</div><div class="val">${fBRLk(c.custoTotal)}</div><div class="sub">${fInt(+s.quantidade || 0)} caixas planejadas</div></div>
+        <div class="card stat small" style="box-shadow:none;border:1px solid var(--border)"><div class="lbl">Margem bruta</div><div class="val ${n(c.margem) < 0 ? 'neg' : ''}">${fPct(c.margem)}</div><div class="sub">${c.preco > 0 ? fBRL(c.preco - c.custo) + ' por caixa' : 'informe o preço sugerido'}</div></div>
+      </div>
+      <div class="callout ${c.ok ? 'note' : 'erro'}" style="margin:14px 0 0">${!c.itens.length ? 'Adicione os produtos da caixa.' : c.ok ? `Dá para montar as ${fInt(+s.quantidade || 0)} caixas com o estoque disponível hoje.` : `Não dá para montar as ${fInt(+s.quantidade || 0)} caixas: faltam unidades de ${c.itens.filter(i => i.falta > 0).map(i => `${esc(i.nome)} (${fInt(i.falta)})`).join(', ')}.`}</div>`;
+    };
+    const linhas = () => {
+      tb.innerHTML = s.itens.map((it, i) => `<tr data-i="${i}">
+        <td class="wide"><input class="input" list="sim-skus" data-sku value="${esc(it.sku)}" placeholder="Digite o SKU ou nome" style="min-width:220px"><div class="cell-nm" data-c="nm" style="margin-top:4px"></div></td>
+        <td class="num"><input class="input" type="number" min="1" step="1" data-qtd value="${it.qtd}" style="width:70px;text-align:right"></td>
+        <td class="num" data-c="disp"></td><td class="num" data-c="nec"></td><td class="num" data-c="poss"></td><td class="num" data-c="cu"></td><td class="num" data-c="sub"></td>
+        <td><button class="btn sec sm" data-rm title="Remover produto">✕</button></td></tr>`).join('');
+      tb.querySelectorAll('tr').forEach(tr => { const i = +tr.dataset.i;
+        const inp = tr.querySelector('[data-sku]');
+        inp.addEventListener('change', () => { let v = inp.value.trim(); if (!mapa.has(v)) { const m = base.find(b => b.nome.toLowerCase() === v.toLowerCase()); if (m) v = m.sku; } s.itens[i].sku = v; inp.value = v; atualizar(); });
+        tr.querySelector('[data-qtd]').addEventListener('input', e => { s.itens[i].qtd = Math.max(1, +e.target.value || 1); atualizar(); });
+        tr.querySelector('[data-rm]').addEventListener('click', () => { s.itens.splice(i, 1); if (!s.itens.length) s.itens.push({sku:'', qtd:1}); linhas(); });
+      });
+      atualizar();
+    };
+    ed.querySelectorAll('[data-f]').forEach(inp => inp.addEventListener('input', () => { const k = inp.dataset.f; s[k] = k === 'nome' ? inp.value : (inp.value === '' ? null : +inp.value); atualizar(); }));
+    ed.querySelector('[data-add]').addEventListener('click', () => { s.itens.push({sku:'', qtd:1}); linhas(); tb.querySelector('tr:last-child [data-sku]').focus(); });
+    ed.querySelector('[data-cancelar]').addEventListener('click', () => { ed.innerHTML = ''; });
+    ed.querySelector('[data-salvar]').addEventListener('click', async () => {
+      const itens = s.itens.filter(i => i.sku).map(i => ({sku:i.sku, qtd:Math.max(1, +i.qtd || 1)}));
+      if (!s.nome || !s.nome.trim()) { msg.textContent = 'Dê um nome para a caixa.'; return; }
+      if (itens.some(i => !mapa.has(i.sku))) { msg.textContent = 'Há SKU que não existe no cadastro.'; return; }
+      msg.textContent = 'Salvando…';
+      const reg = {nome:s.nome.trim(), quantidade:Math.max(0, Math.round(+s.quantidade || 0)), preco_venda:s.preco_venda, itens, atualizado_em:new Date().toISOString()};
+      const r = sim ? await sb.from('kits_simulacoes').update(reg).eq('id', sim.id) : await sb.from('kits_simulacoes').insert(reg);
+      if (r.error) { msg.textContent = 'Não foi possível salvar: ' + r.error.message; return; }
+      ed.innerHTML = ''; carregarSims();
+    });
+    const ex = ed.querySelector('[data-excluir]');
+    if (ex) ex.addEventListener('click', async () => {
+      if (ex.dataset.conf !== '1') { ex.dataset.conf = '1'; ex.textContent = 'Clique de novo para confirmar'; return; }
+      msg.textContent = 'Excluindo…';
+      const r = await sb.from('kits_simulacoes').delete().eq('id', sim.id);
+      if (r.error) { msg.textContent = 'Não foi possível excluir: ' + r.error.message; return; }
+      ed.innerHTML = ''; carregarSims();
+    });
+    linhas();
+    ed.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  async function carregarSims() {
+    const r = await sb.from('kits_simulacoes').select('*').order('criado_em', {ascending:false});
+    if (tk !== renderToken) return;
+    if (r.error) { lista.innerHTML = `<div class="callout alerta" style="margin:0">As simulações ainda não estão ativadas no banco (falta rodar o arquivo simulacao_caixas.sql no Supabase).<br><small>${esc(r.error.message)}</small></div>`; host.querySelector('[data-novo]').disabled = true; return; }
+    sims = r.data || []; desenharLista();
+  }
+  rpc('kits_simulacao_base', {}).then(b => {
+    if (tk !== renderToken) return;
+    base = b; mapa = new Map(b.map(x => [x.sku, x]));
+    host.querySelector('[data-novo]').addEventListener('click', () => abrir(null));
+    carregarSims();
+  }).catch(e => { if (tk !== renderToken) return; lista.innerHTML = `<div class="callout alerta" style="margin:0">As simulações ainda não estão ativadas no banco (falta rodar o arquivo simulacao_caixas.sql no Supabase).<br><small>${esc(e.message || '')}</small></div>`; host.querySelector('[data-novo]').disabled = true; });
+}
+
+
 </script>
 </body>
 </html>
