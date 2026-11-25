@@ -46,8 +46,23 @@ button{font-family:var(--ff-sans);cursor:pointer}
 
 /* APP SHELL */
 #app{display:flex;min-height:100vh}
-.side{width:228px;flex-shrink:0;background:var(--pp-marrom);color:#E8DECF;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.side{width:228px;flex-shrink:0;transition:width .18s ease;background:var(--pp-marrom);color:#E8DECF;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
 .side .logo{height:18px;margin:26px 22px 8px;overflow:hidden}
+.side-top{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.side-top .logo{flex:1;min-width:0;margin-right:0}
+.side-toggle{background:none;border:0;color:#E8DECF;width:30px;height:30px;border-radius:var(--r-sm);display:inline-flex;align-items:center;justify-content:center;margin:20px 10px 2px 0;flex-shrink:0}
+.side-toggle:hover{background:rgba(255,254,243,.12);color:var(--pp-polen)}
+.side-toggle svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s ease}
+#app.collapsed .side{width:64px}
+#app.collapsed .side .logo,#app.collapsed .side .sect,#app.collapsed .side .nav .lbl-nav,#app.collapsed .side-foot .email{display:none}
+#app.collapsed .side-top{justify-content:center}
+#app.collapsed .side-toggle{margin:20px 0 14px}
+#app.collapsed .side-toggle svg{transform:rotate(180deg)}
+#app.collapsed .nav{padding:0 8px}
+#app.collapsed .nav button{justify-content:center;padding:10px 0}
+#app.collapsed .side-foot{padding:14px 8px;text-align:center}
+#app.collapsed .side-foot button{padding:5px 6px;font-size:11px}
+.nav .lbl-nav{white-space:nowrap}
 .side .logo svg,.login-card .logo svg{display:block;height:100%;width:auto;max-width:100%}
 .side .sect{font-family:var(--ff-sans);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:#BFA98F;padding:22px 22px 8px}
 .nav{display:flex;flex-direction:column;gap:2px;padding:0 10px}
@@ -204,6 +219,10 @@ td.mid{min-width:150px}
   #app{flex-direction:column}
   .side{width:100%;height:auto;position:static;flex-direction:row;align-items:center;flex-wrap:wrap}
   .side .logo{margin:14px 16px}
+  .side-toggle{display:none}
+  #app.collapsed .side{width:100%}
+  #app.collapsed .side .logo,#app.collapsed .side .nav .lbl-nav{display:block}
+  #app.collapsed .side .nav .lbl-nav{display:inline}
   .side .sect{display:none}
   .nav{flex-direction:row;overflow-x:auto;padding:0 8px 10px;width:100%}
   .nav button{white-space:nowrap;padding:8px 10px}
@@ -236,7 +255,7 @@ td.mid{min-width:150px}
 
 <div id="app" hidden>
   <aside class="side">
-    <div class="logo" data-logo style="color:#FFFEF3"></div>
+    <div class="side-top"><div class="logo" data-logo style="color:#FFFEF3"></div><button class="side-toggle" id="side-toggle" title="Recolher menu" aria-label="Recolher menu"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button></div>
     <div class="sect">Produto</div>
     <nav class="nav" id="nav"></nav>
     <div class="side-foot"><div class="email" id="u-email"></div><button id="logout">Sair</button></div>
@@ -558,7 +577,8 @@ function el(html) { const t = document.createElement('template'); t.innerHTML = 
 function div(parent, cls='', html='') { const d = document.createElement('div'); if (cls) d.className = cls; if (html) d.innerHTML = html; parent.appendChild(d); return d; }
 
 function renderNav() {
-  document.getElementById('nav').innerHTML = VIEWS.map(v => `<button data-v="${v.id}" class="${S.view===v.id?'active':''}">${svg(ICON[v.icon])}${v.label}</button>`).join('');
+  document.getElementById('nav').innerHTML = VIEWS.map(v => `<button data-v="${v.id}" class="${S.view===v.id?'active':''}">${svg(ICON[v.icon])}<span class="lbl-nav">${v.label}</span></button>`).join('');
+  document.querySelectorAll('#nav button').forEach((b, i) => b.title = VIEWS[i].label);
 }
 function renderTop() {
   const v = VIEWS.find(x => x.id === S.view);
@@ -758,7 +778,7 @@ function viewEstoque(v, f) {
 
   function carregar() {
     const pCats = S.categorias && S.catsAll && S.categorias.length === S.catsAll.length ? null : S.categorias;
-    const p = rpc('produto_estoque2', {data_ref:S.dataRef, p_janela_dias:S.janela, p_categorias:pCats, p_excluir_transferencias:S.exclTransf, p_excluir_eventos:S.exclEventos});
+    const p = rpc('produto_estoque3', {data_ref:S.dataRef, p_janela_dias:S.janela, p_categorias:pCats, p_excluir_transferencias:S.exclTransf, p_excluir_eventos:S.exclEventos});
     p.finally(carimbo);
     // margem de produto do SKU na mesma janela do consumo (vendas do Tiny)
     const mIni = addDays(S.dataRef, -(S.janela - 1));
@@ -835,9 +855,10 @@ function viewEstoque(v, f) {
       const ordemNiv = x => NIVEIS.indexOf(x);
       const agrupar = rs => {
         const m = new Map();
-        rs.forEach(r => { const k = r.nome_geral; if (!m.has(k)) m.set(k, {...r, sku:'', skus:0, imagem_url:r.imagem_url, estoque_fulfillment:0, em_expedicao:0, reserva:0, estoque_disponivel:0, consumo_medio_dia:0, consumo_medio_mes:0, dias_fora_estoque:null, fora_desde:null, curva:null, risco_quebra:false, _mcS:0, _flS:0, _semcS:false, _nivO:99});
+        rs.forEach(r => { const k = r.nome_geral; if (!m.has(k)) m.set(k, {...r, sku:'', skus:0, imagem_url:r.imagem_url, estoque_fulfillment:0, em_expedicao:0, reserva:0, estoque_disponivel:0, no_site:0, no_site_ilimitado:false, consumo_medio_dia:0, consumo_medio_mes:0, dias_fora_estoque:null, fora_desde:null, curva:null, risco_quebra:false, _mcS:0, _flS:0, _semcS:false, _nivO:99});
           const g = m.get(k); g.skus++; g.sku = g.skus + ' SKUs'; g.nome_sku = g.skus + ' SKUs';
-          ['estoque_fulfillment','em_expedicao','reserva','estoque_disponivel','consumo_medio_dia','consumo_medio_mes'].forEach(c => g[c] += n(r[c]) || 0);
+          ['estoque_fulfillment','em_expedicao','reserva','estoque_disponivel','consumo_medio_dia','consumo_medio_mes','no_site'].forEach(c => g[c] += n(r[c]) || 0);
+          g.no_site_ilimitado = g.no_site_ilimitado || r.no_site_ilimitado;
           if (!g.imagem_url && r.imagem_url) g.imagem_url = r.imagem_url;
           if (r.curva && (!g.curva || r.curva < g.curva)) g.curva = r.curva;
           if (r.status === 'Ativo') g.status = 'Ativo';
@@ -879,6 +900,7 @@ function viewEstoque(v, f) {
           {key:'em_expedicao', label:'Em<br>expedição', num:true, fmt:fInt},
           {key:'reserva', label:'Reserva de<br>emergência', num:true, fmt:fInt},
           {key:'estoque_disponivel', label:'Estoque<br>disponível', num:true, hl:true, fmt:fInt},
+          {key:'no_site', label:'No site', num:true, sort:r => r.no_site_ilimitado ? 1e9 : r.no_site, html:r => r.no_site_ilimitado ? `${n(r.no_site) ? fInt(r.no_site) + ' + ' : ''}<span class="bdg b-cinza" title="Anúncio sem controle de estoque na Nuvemshop">sem controle</span>` : (r.no_site === null || r.no_site === undefined ? '—' : `<span class="${r.risco_quebra ? 'neg-txt' : ''}">${fInt(r.no_site)}</span>`), csv:r => r.no_site_ilimitado ? 'sem controle' : r.no_site},
           {key:'consumo_medio_dia', label:'Consumo/<br>dia', num:true, fmt:v => n(v) === null ? '—' : n(v).toLocaleString('pt-BR',{maximumFractionDigits:2})},
           {key:'consumo_medio_mes', label:'Consumo/<br>mês', num:true, fmt:fInt},
           {key:'dias_estoque', label:'Dias de<br>estoque', num:true, html:r => { const d = n(r.dias_estoque); return d === null ? '—' : `<span class="${d < 15 ? 'neg-txt' : ''}">${fInt(d)}</span>`; }, csv:r => r.dias_estoque},
@@ -888,7 +910,7 @@ function viewEstoque(v, f) {
           {key:'ultima_entrada', label:'Última<br>entrada', fmt:fDate},
         ]
       });
-      ct.insertAdjacentHTML('beforeend', `<div class="foot-note" style="margin-top:14px">Estoque fulfillment = saldo do WMS hoje. Disponível = fulfillment − em expedição − reserva de emergência (10% do saldo, mínimo 5 unidades). Nível pelo disponível e pela curva (régua acima); fora de estoque = disponível zerado. Risco de quebra = o site anuncia mais unidades do que o disponível. Consumo médio/dia = saídas da janela ÷ dias com estoque (mínimo 7); dias de estoque = disponível ÷ consumo/dia. Curva ABC = últimos 12 meses (Tiny), só produtos ativos. Margem = margem de contribuição de produto do SKU nas vendas da janela de consumo. Use "Colunas" para ocultar ou mostrar colunas (a escolha fica salva neste navegador).</div>`);
+      ct.insertAdjacentHTML('beforeend', `<div class="foot-note" style="margin-top:14px">Estoque fulfillment = saldo do WMS hoje. Disponível = fulfillment − em expedição − reserva de emergência (10% do saldo, mínimo 5 unidades). Nível pelo disponível e pela curva (régua acima); fora de estoque = disponível zerado. No site = unidades anunciadas na Nuvemshop hoje, somando anúncios visíveis e não listados (links de oferta); anúncios ocultos não contam. Em vermelho quando há risco de quebra. Risco de quebra = o site anuncia mais unidades do que o disponível. Consumo médio/dia = saídas da janela ÷ dias com estoque (mínimo 7); dias de estoque = disponível ÷ consumo/dia. Curva ABC = últimos 12 meses (Tiny), só produtos ativos. Margem = margem de contribuição de produto do SKU nas vendas da janela de consumo. Use "Colunas" para ocultar ou mostrar colunas (a escolha fica salva neste navegador).</div>`);
       if (matrizSel) { tabela.setFilter('curva', [matrizSel[0]]); tabela.setFilter('nivel', [matrizSel[1]]); }
     });
 
@@ -1205,6 +1227,15 @@ document.getElementById('login-form').addEventListener('submit', async e => {
   if (error) err.textContent = 'E-mail ou senha inválidos.';
 });
 document.getElementById('logout').addEventListener('click', () => sb.auth.signOut());
+(() => {
+  const app = document.getElementById('app'), tg = document.getElementById('side-toggle');
+  const set = c => { app.classList.toggle('collapsed', c); tg.title = c ? 'Abrir menu' : 'Recolher menu'; tg.setAttribute('aria-label', tg.title);
+    try { localStorage.setItem('menu_recolhido', c ? '1' : '0'); } catch (_) {}
+    setTimeout(() => charts.forEach(ch => { try { ch.resize(); } catch (_) {} }), 220); };
+  let ini = false; try { ini = localStorage.getItem('menu_recolhido') === '1'; } catch (_) {}
+  set(ini);
+  tg.addEventListener('click', () => set(!app.classList.contains('collapsed')));
+})();
 let iniciado = false;
 function mostrar(session) {
   const logado = !!session;
