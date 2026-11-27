@@ -73,7 +73,8 @@ button{font-family:var(--ff-sans);cursor:pointer}
 .side-foot .email{color:#E8DECF;word-break:break-all;margin-bottom:8px}
 .side-foot button{background:none;border:1px solid rgba(255,254,243,.3);color:var(--pp-polen);border-radius:var(--r-sm);padding:5px 10px;font-size:12px}
 main{flex:1;min-width:0}
-.wrap{max-width:1200px;margin:0 auto;padding:28px 28px 64px}
+.wrap{max-width:1200px;margin:0 auto;padding:28px 28px 64px;transition:max-width .18s ease}
+#app.collapsed .wrap{max-width:none}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:18px}
 .top h1{font-size:30px;line-height:1.15}
 .top .sub{font-family:var(--ff-sans);font-size:13px;color:var(--text-soft);margin-top:4px}
@@ -255,10 +256,23 @@ td.mid{min-width:150px}
 .mc-dirty{font-size:12px;color:#8A6420;font-weight:600}
 .mc-msg{font-size:12.5px;color:var(--text-soft)}
 .mc-del{color:var(--erro)!important;border-color:#F2C9BB!important}
-.mc-step{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);padding:0;overflow:visible;margin-bottom:18px}
+.mc-step{padding:0;overflow:visible;margin-bottom:18px}
+.mc-step .mc-body{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+.mc-head{display:flex;align-items:center;gap:0;width:100%;background:none;border:0;text-align:left;padding:18px 24px;border-radius:var(--r-md);flex-wrap:wrap;row-gap:4px}
+.mc-head:hover{background:#FCF8EE}
+.mc-head h3{font-size:19px;margin:0}
+.mc-card{padding:0}
+.mc-card .mc-head h3{font-size:17px}
+.mc-card .mc-body{padding:0 24px 22px}
+.mc-step .mc-head{border-bottom:1px solid var(--border);border-radius:var(--r-md) var(--r-md) 0 0}
+.mc-chev{width:18px;height:18px;stroke:var(--text-soft);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:8px;transform:rotate(90deg);transition:transform .15s ease;flex-shrink:0}
+.mc-resumo{display:none;margin-left:auto;padding-left:16px;font-family:var(--ff-sans);font-size:12.5px;color:var(--text-soft);text-align:right}
+.fechado .mc-chev{transform:none}
+.fechado .mc-body{display:none}
+.fechado .mc-resumo{display:block}
+.mc-step.fechado .mc-head{border-bottom:0;border-radius:var(--r-md)}
 .mc-l{padding:22px 24px;min-width:0}
-.mc-r{background:#FBF5E9;padding:22px 24px;border-left:1px solid var(--border);border-radius:0 var(--r-md) var(--r-md) 0;min-width:0}
-.mc-l h3{display:flex;align-items:center;font-size:19px;margin-bottom:16px}
+.mc-r{background:#FBF5E9;padding:22px 24px;border-left:1px solid var(--border);border-radius:0 0 var(--r-md) 0;min-width:0}
 .mc-num{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--pp-marrom);color:var(--pp-polen);font-family:var(--ff-sans);font-size:13px;font-weight:700;align-items:center;justify-content:center;margin-right:10px;flex-shrink:0}
 .mc-r h4{font-family:var(--ff-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);font-weight:600;margin-bottom:8px}
 .mc-fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:0 14px}
@@ -312,7 +326,7 @@ td.mid{min-width:150px}
 .mc-mm td.mc-totc{font-weight:bold;background:var(--pp-polen-deep)}
 .mc-tagm{font-size:9.5px;font-weight:600;letter-spacing:.5px;opacity:.85;text-transform:lowercase}
 .mc-pos{color:#6E7330}
-@media (max-width:980px){.mc-step{grid-template-columns:1fr}.mc-r{border-left:0;border-top:1px solid var(--border);border-radius:0 0 var(--r-md) var(--r-md)}}
+@media (max-width:980px){.mc-step .mc-body{grid-template-columns:1fr}.mc-r{border-left:0;border-top:1px solid var(--border);border-radius:0 0 var(--r-md) var(--r-md)}}
 </style>
 </head>
 <body>
@@ -1558,7 +1572,13 @@ function mcPadrao(tipo = 'importacao') {
     feriados:T.fer.map(i => ({...MC_FER[i]})), parcelas:T.parcelas.map(p => ({...p}))};
 }
 const MC = {d:null, id:null, nome:'', dirty:false, lista:null, info:new Map(), nomes:new Map(), cot:null, cotErro:false,
-  msg:'', msgErro:false, confExcl:false, cen:'real', host:null, carregando:false};
+  msg:'', msgErro:false, confExcl:false, cen:'real', host:null, carregando:false, fechados:new Set()};
+try { MC.fechados = new Set(JSON.parse(localStorage.getItem('mc_fechados') || '[]')); } catch (_) {}
+const MC_SECOES = ['p1','p2','p3','p4','p5','p6','r1','r2','r3'];
+const mcSalvaFechados = () => { try { localStorage.setItem('mc_fechados', JSON.stringify([...MC.fechados])); } catch (_) {} };
+const mcHead = (id, titulo, resumo, num) => `<button type="button" class="mc-head" data-a="tog" data-v="${id}" aria-expanded="${!MC.fechados.has(id)}" title="${MC.fechados.has(id) ? 'Abrir' : 'Fechar'} seção">
+  <svg class="mc-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>${num ? `<span class="mc-num">${num}</span>` : ''}<h3>${titulo}</h3><span class="mc-resumo">${resumo || ''}</span></button>`;
+const mcAbre = (id, titulo, resumo, mb = true) => `<div class="card mc-card ${MC.fechados.has(id) ? 'fechado' : ''}" ${mb ? 'style="margin-bottom:18px"' : ''}>${mcHead(id, titulo, resumo)}<div class="mc-body">`;
 
 /* ---------- helpers ---------- */
 const mcMesAtual = hoje.slice(0,7);
@@ -1858,12 +1878,13 @@ function mcTopo() {
       <button class="btn sec sm" data-a="salvar-nova">Salvar como nova</button>
       ${MC.id ? `<button class="btn sec sm mc-del" data-a="excluir">${MC.confExcl ? 'Clique de novo para excluir' : 'Excluir'}</button>` : ''}
       ${MC.dirty ? '<span class="mc-dirty">● alterações não salvas</span>' : ''}
+      <span style="margin-left:auto"></span><button class="btn sec sm" data-a="tog-todos" data-v="abrir">Abrir todas as seções</button><button class="btn sec sm" data-a="tog-todos" data-v="fechar">Fechar todas</button>
       ${MC.msg ? `<span class="mc-msg ${MC.msgErro ? 'neg-txt' : ''}">${esc(MC.msg)}</span>` : ''}
     </div>
     <div class="foot-note" style="margin-top:12px">Preencha os passos de cima para baixo. Em cada passo, o quadro da direita mostra a conta feita com o que você preencheu. Campos vazios usam o valor calculado, que aparece em cinza.</div>
   </div>`;
 }
-const mcStep = (num, titulo, esq, dir) => `<div class="card mc-step"><div class="mc-l"><h3><span class="mc-num">${num}</span>${titulo}</h3>${esq}</div><div class="mc-r"><h4>O que isso dá</h4>${dir}</div></div>`;
+const mcStep = (num, titulo, esq, dir, resumo) => `<div class="card mc-step ${MC.fechados.has('p' + num) ? 'fechado' : ''}">${mcHead('p' + num, titulo, resumo, num)}<div class="mc-body"><div class="mc-l">${esq}</div><div class="mc-r"><h4>O que isso dá</h4>${dir}</div></div></div>`;
 function mcTags(lista, key) {
   return `<div class="mc-tags">${lista.map(s => `<span class="mc-tag">${esc(MC.nomes.get(s) || s)} <small>${esc(s)}</small><button type="button" data-a="rm-sku" data-l="${key}" data-v="${esc(s)}" title="Tirar">×</button></span>`).join('')}</div>
     <div class="mc-busca" data-l="${key}"><input class="input" data-bq placeholder="Busque por SKU ou nome (mín. 2 letras)" autocomplete="off"><div class="mc-drop" hidden></div></div>`;
@@ -1894,7 +1915,7 @@ function mcP1(d, R) {
   });
   if (R.refs.some(r => r.curva === 'A')) dir += mcNota('Curva A: regra é não deixar faltar.', 'alerta');
   if (R.refs.length > 1) dir += mcNota(d.lancamento ? `${R.refs.length} similares: giro, preço médio e custo pela média deles.` : `${R.refs.length} SKUs: vendas e estoque somados; preço de capa e custo pela média.`);
-  return mcStep(1, 'O que vamos <em>comprar</em>', esq, dir);
+  return mcStep(1, 'O que vamos <em>comprar</em>', esq, dir, `${MC_TIPOS[d.tipo].label} · ${R.Q ? fN(R.Q) + ' un.' : 'sem quantidade'} · ${d.lancamento ? esc(d.nome_lanc || 'lançamento') + ' (' + R.refs.length + ' similares)' : R.refs.length + (R.refs.length === 1 ? ' SKU' : ' SKUs')}`);
 }
 function mcP2(d, R, RS) {
   const opMes = []; for (let i = 36; i >= 1; i--) opMes.push(mcAddMes(mcMesAtual, -i));
@@ -1925,7 +1946,7 @@ function mcP2(d, R, RS) {
   if ((d.campanhas || []).length) dir += mcLn('Campanhas', (d.campanhas || []).length + '', (d.campanhas || []).filter(c => c.mes).map(c => `${mcMesLbl(c.mes)}: × (1 + ${fPct((n(c.extra) ?? .5) * 100, 0)})`).join(' · '));
   const mx = Math.max(1, ...R.serie.map(s => s.q));
   if (R.serie.length) dir += `<div class="mc-bars">${R.serie.map(s => `<div class="mc-bar" title="${mcMesLbl(s.mes)}: ${fN(s.q)} un."><i style="height:${Math.max(2, s.q / mx * 100)}%;background:${s.pico ? COR.marrom : COR.bege}"></i><span>${MC_MES[+s.mes.slice(5,7) - 1].slice(0,1)}</span></div>`).join('')}</div><div class="ct" style="margin-top:4px">vendas mês a mês da base · picos em marrom</div>`;
-  return mcStep(2, 'Quanto <em>vende</em> (giro)', esq, dir);
+  return mcStep(2, 'Quanto <em>vende</em> (giro)', esq, dir, `${fN(R.vendaMes, 1)} un./mês no cenário ${MC_CEN.find(c => c[0] === MC.cen)[1].toLowerCase()} · preço ${fBRL(R.preco)}`);
 }
 function mcP3(d, R) {
   const imp = d.tipo === 'importacao';
@@ -1950,7 +1971,7 @@ function mcP3(d, R) {
   dir += mcLn('Chegada', fDate(R.chegada), d.chegada_manual ? `preenchida (pelos prazos seria ${fDate(R.chegadaCalc)})` : `${fDate(R.fimProd)} + ${fInt(R.trans)} dias de ${imp ? 'trânsito' : 'entrega'}${imp ? ` + ${fInt(R.desemb)} de desembaraço` : ''}`);
   dir += mcLn('Prazo total', fInt(R.prazoTotal) + ' dias', d.chegada_manual ? 'do pedido à chegada informada' : `${fInt(R.prod)} + ${fInt(R.parados)} parados + ${fInt(R.trans)}${imp ? ' + ' + fInt(R.desemb) : ''}`);
   dir += R.impactos.length ? R.impactos.map(x => mcNota(`${esc(x.nome)} cai durante a produção: +${fInt(x.dias)} dias.`, 'alerta')).join('') : mcNota('Nenhum feriado da lista cai durante a produção.');
-  return mcStep(3, 'Quando <em>chega</em> (prazos)', esq, dir);
+  return mcStep(3, 'Quando <em>chega</em> (prazos)', esq, dir, `chega em ${fDate(R.chegada)} · ${fInt(R.prazoTotal)} dias${R.parados ? ` (${fInt(R.parados)} parados)` : ''}`);
 }
 function mcP4(d, R) {
   let esq, dir;
@@ -1999,7 +2020,7 @@ function mcP4(d, R) {
   }
   dir += mcLn('Total do pedido', fBRL(R.totalPedido), `${qtxt} × ${fBRL(R.custoUn)}`, 'mc-tot');
   if (!Q) dir += mcNota('Preencha a quantidade no passo 1.', 'alerta');
-  return mcStep(4, 'Quanto <em>custa</em> cada unidade', esq, dir);
+  return mcStep(4, 'Quanto <em>custa</em> cada unidade', esq, dir, `${fBRL(R.custoUn)} por unidade · total ${fBRL(R.totalPedido)}`);
 }
 function mcP5(d, R) {
   const esq = `<div class="field"><span>Parcelas ao fornecedor (sobre o valor do produto${R.imp ? ' — FOB' : ''})${mcQ('parcelas')}</span>
@@ -2013,7 +2034,7 @@ function mcP5(d, R) {
   let dir = R.pagtos.length ? R.pagtos.map(p => mcLn(`${fDate(p.data)} · ${esc(p.rot)}`, fBRL(p.valor), p.conta)).join('') : '<div class="cell-nm">Nenhuma saída de caixa ainda.</div>';
   dir += mcLn('Total que sai do caixa', fBRL(R.totalSai), R.imp ? `FOB ${fBRL(R.baseProd)} + frete + impostos e despesas` : `produto ${fBRL(R.baseProd)} + frete e outros`, 'mc-tot');
   if (Math.abs(R.somaPct - 1) > .0005) dir += mcNota(`As parcelas somam ${fPct(R.somaPct * 100, 1)}, não 100%.`, 'erro');
-  return mcStep(5, 'Como <em>pagamos</em>', esq, dir);
+  return mcStep(5, 'Como <em>pagamos</em>', esq, dir, `${R.pagtos.length} saídas · ${fBRL(R.totalSai)}${Math.abs(R.somaPct - 1) > .0005 ? ` · <span class="neg-txt">parcelas somam ${fPct(R.somaPct * 100, 0)}</span>` : ''}`);
 }
 function mcP6(d, R) {
   const curvaA = R.refs.some(r => r.curva === 'A');
@@ -2033,7 +2054,7 @@ function mcP6(d, R) {
   dir += mcLn('Próximo pedido precisa sair até', R.proxPedido ? fDate(R.proxPedido) : '—', R.proxPedido ? `15/${R.pedEnd.slice(5,7)}/${R.pedEnd.slice(0,4)} − ${fInt(R.prazoTotal)} dias de prazo − ${fN(R.seg, 1)} × 30,4 dias de segurança` : '', R.proxPedido && R.proxPedido < hoje ? 'mc-neg' : '');
   const dif = R.Q - R.qtdN;
   dir += mcLn(`Quantidade para cobrir ${fN(R.cob, 0)} meses`, fUn(R.qtdN), `demanda de ${fDate(R.chegada)} a ${fDate(R.fimN)} ${fN(R.demN)} + segurança ${fN(R.seg, 1)} × ${fN(R.vendaMes, 1)} = ${fN(R.segUn)} − estoque na chegada ${fN(R.estNaChegada)}${R.Q ? ` · você está simulando ${fN(Math.abs(dif))} ${dif >= 0 ? 'a mais' : 'a menos'} que isso` : ''}`, 'mc-tot');
-  return mcStep(6, 'Estoque: até quando <em>dura</em>', esq, dir);
+  return mcStep(6, 'Estoque: até quando <em>dura</em>', esq, dir, `cobre ${R.cobreMeses !== null ? fN(R.cobreMeses, 1) : '—'} meses · ${R.faltaAntes > .5 ? `<span class="neg-txt">falta ${fN(R.faltaAntes)} un. até chegar</span>` : 'sem falta até chegar'} · próximo pedido até ${R.proxPedido ? fDate(R.proxPedido) : '—'}`);
 }
 function mcResultado(d, R, RS) {
   const linhas = [
@@ -2050,10 +2071,10 @@ function mcResultado(d, R, RS) {
     ['Caixa se paga em', r => r.pagaEm ? mcMesLbl(r.pagaEm) : '—'],
   ];
   let h = `<div class="mc-res-h"><h2>Resultado</h2><div class="seg">${MC_CEN.map(([k, l]) => `<button type="button" class="${MC.cen === k ? 'on' : ''}" data-a="cen" data-v="${k}">${l}</button>`).join('')}</div></div>`;
-  h += `<div class="card" style="margin-bottom:18px"><h3>Os três cenários <em>lado a lado</em></h3><div class="hint">cenário selecionado em destaque</div>
+  h += `${mcAbre('r1', 'Os três cenários <em>lado a lado</em>', `margem bruta ${R.margemPct === null ? '—' : fPct(R.margemPct * 100)} · pedido acaba em ${R.pedEnd ? mcMesLbl(R.pedEnd.slice(0,7)) : '—'} (${MC_CEN.find(c => c[0] === MC.cen)[1].toLowerCase()})`)}<div class="hint">cenário selecionado em destaque</div>
     <div class="tscroll" style="max-height:none"><table class="t mc-tc"><thead><tr><th></th>${MC_CEN.map(([k, l]) => `<th class="num ${k === MC.cen ? 'hl' : ''}">${l}<br><small>${fPct(RS[k].cenPct * 100, 0)}</small></th>`).join('')}</tr></thead>
     <tbody>${linhas.map(([l, f]) => `<tr><td>${l}</td>${MC_CEN.map(([k]) => `<td class="num ${k === MC.cen ? 'hl' : ''}">${f(RS[k])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
-    <div class="foot-note">Margem antes de frete de venda, taxas e royalties. Receita, custo e margem não mudam entre cenários: o que muda é o tempo para vender.</div></div>`;
+    <div class="foot-note">Margem antes de frete de venda, taxas e royalties. Receita, custo e margem não mudam entre cenários: o que muda é o tempo para vender.</div></div></div>`;
   if (!d.lancamento && d.skus.length > 1 && R.refs.length > 1) h += mcCardDivisao(d, R);
   h += mcCardMes(R);
   return h;
@@ -2069,13 +2090,13 @@ function mcCardDivisao(d, R) {
     <td class="num">${fInt(x.part)}</td><td class="num"><span class="${x.cobPart !== null && x.cobPart < T - 1 ? 'neg-txt' : ''}">${x.cobPart !== null ? fN(x.cobPart, 1) + ' m' : '—'}</span></td>
     <td class="num">${fInt(x.precisa)}</td></tr>`).join('');
   const sv = tot('v'), sec = tot('ec');
-  return `<div class="card" style="margin-bottom:18px"><h3>Divisão sugerida <em>por SKU</em></h3>
+  return `${mcAbre('r2', 'Divisão sugerida <em>por SKU</em>', R.Q && sv > 0 ? `cada SKU fica com ${fN(T, 1)} meses depois da chegada` : '')}
     <div class="hint">${R.Q && sv > 0 ? `Com ${fN(R.Q)} un., cada SKU fica com ${fN(T, 1)} meses de estoque depois da chegada (${fDate(R.chegada)}). O SKU que vende mais ou chega com menos estoque recebe mais.` : 'Preencha a quantidade para ver a divisão.'}</div>
     <div class="tscroll" style="max-height:none"><table class="t"><thead><tr><th>SKU</th><th class="num">Venda/<br>mês</th><th class="num">Estoque<br>hoje</th><th class="num">Acaba em</th><th class="num">Falta até<br>chegar</th><th class="num">Estoque na<br>chegada</th>
       <th class="num hl">Qtd.<br>sugerida</th><th class="num hl">Cobertura</th><th class="num">Pela<br>participação</th><th class="num">Cobertura<br>dessa divisão</th><th class="num">Precisa p/<br>${fN(R.cob, 0)}+${fN(R.seg, 0)} meses</th></tr></thead>
     <tbody>${rows}<tr class="tot"><td>Total</td><td class="num">${fN(sv, 1)}</td><td class="num">${fInt(tot('e'))}</td><td></td><td class="num">${fInt(tot('falta'))}</td><td class="num">${fInt(sec)}</td>
       <td class="num">${fInt(tot('sug'))}</td><td class="num">${sv > 0 ? fN((sec + tot('sug')) / sv, 1) + ' m' : '—'}</td><td class="num">${fInt(tot('part'))}</td><td></td><td class="num">${fInt(tot('precisa'))}</td></tr></tbody></table></div>
-    <div class="foot-note">Venda/mês = vendas do SKU na base ÷ ${R.nMeses} meses × (1 ${R.cenPct < 0 ? '−' : '+'} ${fPct(Math.abs(R.cenPct) * 100, 0)}), sem sazonalidade. Estoque na chegada = estoque hoje − venda/mês × meses até a chegada. Qtd. sugerida = cobertura comum × venda/mês − estoque na chegada. "Pela participação" divide pelo peso de cada SKU nas vendas da base; em vermelho quando deixa o SKU mais de 1 mês abaixo da cobertura comum.</div></div>`;
+    <div class="foot-note">Venda/mês = vendas do SKU na base ÷ ${R.nMeses} meses × (1 ${R.cenPct < 0 ? '−' : '+'} ${fPct(Math.abs(R.cenPct) * 100, 0)}), sem sazonalidade. Estoque na chegada = estoque hoje − venda/mês × meses até a chegada. Qtd. sugerida = cobertura comum × venda/mês − estoque na chegada. "Pela participação" divide pelo peso de cada SKU nas vendas da base; em vermelho quando deixa o SKU mais de 1 mês abaixo da cobertura comum.</div></div></div>`;
 }
 function mcCardMes(R) {
   const rows = R.rows.slice(0, R.ultimo + 1);
@@ -2085,7 +2106,7 @@ function mcCardMes(R) {
   const last = rows[rows.length - 1] || {};
   const din = v => Math.abs(v) < .5 ? '—' : fBRLk(v);
   const bl = t => `<tr class="mc-blk"><td class="mc-fix">${t}</td>${rows.map(() => '<td></td>').join('')}<td></td></tr>`;
-  return `<div class="card"><h3>Mês a mês: <em>estoque e caixa</em></h3><div class="hint">cenário ${MC_CEN.find(c => c[0] === MC.cen)[1].toLowerCase()} · coluna destacada = mês da chegada · mostra até 1 mês depois de o pedido acabar</div>
+  return `${mcAbre('r3', 'Mês a mês: <em>estoque e caixa</em>', `saldo no fim: ${din(last.saldo)} · ruptura total ${fN(s('falta'))} un.`, false)}<div class="hint">cenário ${MC_CEN.find(c => c[0] === MC.cen)[1].toLowerCase()} · coluna destacada = mês da chegada · mostra até 1 mês depois de o pedido acabar</div>
     <div class="tscroll mc-mm"><table class="t"><thead><tr><th class="mc-fix"></th>${rows.map(r => `<th class="num ${cls(r)}">${mcMesLbl(r.mes)}${r.mes === R.kCheg ? '<div class="mc-tagm">chegada</div>' : ''}${R.usaSaz && R.picoMes.has(r.mes.slice(5,7)) ? '<div class="mc-tagm">pico</div>' : ''}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>
     ${bl('Estoque (unidades)')}
     ${L('Demanda', r => fN(r.dem), fN(s('dem')))}
@@ -2098,7 +2119,7 @@ function mcCardMes(R) {
     ${L('Entra (vendas deste pedido)', r => din(r.entra), din(s('entra')))}
     ${L('Saldo acumulado', r => `<span class="${r.saldo < -.5 ? 'neg-txt' : r.saldo > .5 ? 'mc-pos' : ''}">${din(r.saldo)}</span>`, `<span class="${last.saldo < -.5 ? 'neg-txt' : 'mc-pos'}">${din(last.saldo)}</span>`)}
     </tbody></table></div>
-    <div class="foot-note">Entra = unidades do pedido vendidas × ${fBRL(R.preco)}. Total = soma; em "Estoque no fim do mês" e "Saldo acumulado" o Total é o valor final.</div></div>`;
+    <div class="foot-note">Entra = unidades do pedido vendidas × ${fBRL(R.preco)}. Total = soma; em "Estoque no fim do mês" e "Saldo acumulado" o Total é o valor final.</div></div></div>`;
 }
 const MC_ICO = {lixo:'<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/>'};
 
@@ -2171,6 +2192,8 @@ function mcBind(host) {
     if (a === 'add-fer') { d.feriados.push({nome:'', inicio:'', fim:''}); mcMudou(); mcRender(); return; }
     if (a === 'add-parc') { d.parcelas.push({rotulo:'Parcela', pct:0, base:'chegada', dias:0}); mcMudou(); mcRender(); return; }
     if (a === 'cen') { MC.cen = b.dataset.v; mcRender(); return; }
+    if (a === 'tog') { const id = b.dataset.v; MC.fechados.has(id) ? MC.fechados.delete(id) : MC.fechados.add(id); mcSalvaFechados(); mcRender(); return; }
+    if (a === 'tog-todos') { MC.fechados = b.dataset.v === 'fechar' ? new Set(MC_SECOES) : new Set(); mcSalvaFechados(); mcRender(); return; }
     if (a === 'nova') { MC.d = mcPadrao(); MC.id = null; MC.nome = ''; MC.dirty = false; MC.msg = ''; MC.confExcl = false; mcRender(); return; }
     if (a === 'abrir') { mcAbrir(+b.dataset.v); return; }
     if (a === 'salvar') { mcSalvar(false); return; }
