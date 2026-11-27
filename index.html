@@ -145,6 +145,9 @@ main{flex:1;min-width:0}
 table.t{width:100%;border-collapse:collapse;background:var(--pp-branco);font-size:13px}
 table.t th{position:sticky;top:0;z-index:1;background:var(--pp-marrom);color:var(--pp-polen);font-family:var(--ff-sans);font-size:11px;text-transform:uppercase;letter-spacing:.8px;font-weight:600;padding:11px 10px;text-align:left;white-space:nowrap;line-height:1.3;vertical-align:bottom;cursor:pointer;user-select:none}
 table.t th.num{text-align:right}
+.tip{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;margin-left:5px;border-radius:50%;border:1px solid currentColor;font:600 10px/1 var(--ff-serif);font-style:italic;text-transform:none;letter-spacing:0;cursor:help;position:relative;vertical-align:1px;opacity:.85}
+.tip:hover,.tip:focus{opacity:1;outline:none}
+.tip:hover::after,.tip:focus::after{content:attr(data-tip);position:absolute;top:calc(100% + 8px);right:-10px;width:260px;white-space:normal;text-align:left;background:var(--pp-branco);color:var(--text);border:1px solid var(--border);border-radius:var(--r-sm);box-shadow:0 6px 18px rgba(74,38,24,.18);padding:10px 12px;font:400 12.5px/1.5 var(--ff-sans);font-style:normal;z-index:20}
 table.t th .arr{opacity:.7;margin-left:4px}
 table.t td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
 table.t td.num{font-family:var(--ff-mono);text-align:right;white-space:nowrap}
@@ -584,14 +587,15 @@ function makeTable(host, cfg) {
       const b = e.target.closest('button'); if (!b) return;
       const k = g.dataset.pill, v = b.dataset.v, cur = st.pills[k] || [];
       const opts = (cfg.pills.find(p => p.key === k) || {options:[]}).options;
-      let nx = !v ? [] : cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v];
-      if (nx.length === opts.length) nx = [];
+      const pc = cfg.pills.find(p => p.key === k) || {};
+      let nx = !v ? [] : pc.single ? (cur.includes(v) ? [] : [v]) : cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v];
+      if (!pc.single && nx.length === opts.length) nx = [];
       api.setFilter(k, nx);
     }));
     bar.querySelectorAll('[data-sel]').forEach(sp => {
       const k = sp.dataset.sel, s = cfg.selects.find(x => x.key === k);
       const opts = [...new Set(rows.map(r => r[k]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
-      sp.replaceWith(msel(s.label, opts, st.selects[k] || [], v => { st.selects[k] = v; st.page = 0; draw(); }));
+      sp.replaceWith(msel(s.label, opts, st.selects[k] || [], v => { st.selects[k] = v; st.page = 0; draw(); }, s.single));
     });
     const c = bar.querySelector('[data-csv]'); if (c) c.addEventListener('click', exportCSV);
     const cs = bar.querySelector('[data-cols]');
@@ -635,11 +639,11 @@ function makeTable(host, cfg) {
     if (st.page >= pages) st.page = pages - 1;
     const slice = r.slice(st.page*st.size, (st.page+1)*st.size);
     const cols = visCols();
-    const th = cols.map(c => `<th class="${c.num?'num':''} ${c.hl?'hl':''}" data-k="${c.key}">${c.label}${st.sort.key===c.key ? `<span class="arr">${st.sort.dir==='asc'?'↑':'↓'}</span>`:''}</th>`).join('');
+    const th = cols.map(c => `<th class="${c.num?'num':''} ${c.hl?'hl':''}" data-k="${c.key}">${c.label}${c.tip ? `<span class="tip" tabindex="0" role="button" aria-label="Explicação" data-tip="${esc(c.tip)}">i</span>` : ''}${st.sort.key===c.key ? `<span class="arr">${st.sort.dir==='asc'?'↑':'↓'}</span>`:''}</th>`).join('');
     const td = slice.map(x => `<tr class="${cfg.rowClass ? cfg.rowClass(x) : ''}">${cols.map(c => `<td class="${c.num?'num':''} ${c.w||''} ${c.hl?'hl':''}">${c.html ? c.html(x) : c.fmt ? c.fmt(x[c.key]) : esc(x[c.key] ?? '—')}</td>`).join('')}</tr>`).join('');
     const tot = cfg.total && r.length ? `<tr class="tot">${cols.map((c,i) => { const t = cfg.total(r); return `<td class="${c.num?'num':''}">${t[c.key] !== undefined ? t[c.key] : (i===0?'Total':'')}</td>`; }).join('')}</tr>` : '';
     scroll.innerHTML = r.length ? `<table class="t"><thead><tr>${th}</tr></thead><tbody>${td}${tot}</tbody></table>` : `<div class="empty">Nenhum item encontrado com esses filtros.</div>`;
-    scroll.querySelectorAll('th').forEach(h => h.addEventListener('click', () => {
+    scroll.querySelectorAll('th').forEach(h => h.addEventListener('click', e => { if (e.target.closest('.tip')) return;
       const k = h.dataset.k; const col = cfg.columns.find(c => c.key === k);
       st.sort = st.sort.key === k ? {key:k, dir: st.sort.dir === 'asc' ? 'desc' : 'asc'} : {key:k, dir: col.num ? 'desc' : 'asc'};
       st.page = 0; draw();
@@ -720,18 +724,18 @@ function chipsMulti(label, options, current, onChange, allLabel='Todos') {
   });
   return g;
 }
-function msel(label, options, selected, onChange) {
+function msel(label, options, selected, onChange, single) {
   // dropdown com checkboxes; selected = [] significa "todas"
   const w = el(`<div class="ms"><button class="select ms-btn" type="button"></button><div class="ms-panel" hidden></div></div>`);
   const btn = w.querySelector('.ms-btn'), panel = w.querySelector('.ms-panel');
   let sel = [...selected];
   const lbl = () => btn.textContent = `${label}: ${sel.length === 0 ? 'todas' : sel.length === 1 ? sel[0] : sel.length + ' selecionadas'} ▾`;
   const draw = () => { panel.innerHTML = `<div class="acts"><button data-a="all" type="button">Todas</button><button data-a="none" type="button">Limpar</button></div>` +
-    options.map(o => `<label><input type="checkbox" value="${esc(o)}" ${sel.includes(o)?'checked':''}> ${esc(o)}</label>`).join(''); };
+    options.map(o => `<label><input type="${single ? 'radio' : 'checkbox'}" name="${single ? 'ms-' + esc(label) : ''}" value="${esc(o)}" ${sel.includes(o)?'checked':''}> ${esc(o)}</label>`).join(''); };
   lbl(); draw();
   btn.addEventListener('click', () => { panel.hidden = !panel.hidden; });
   panel.addEventListener('click', e => { const a = e.target.dataset && e.target.dataset.a; if (!a) return; sel = []; draw(); lbl(); onChange(sel); });
-  panel.addEventListener('change', () => { sel = [...panel.querySelectorAll('input:checked')].map(i => i.value); if (sel.length === options.length) sel = []; lbl(); onChange(sel); });
+  panel.addEventListener('change', () => { sel = [...panel.querySelectorAll('input:checked')].map(i => i.value); if (!single && sel.length === options.length) sel = []; lbl(); onChange(sel); if (single) panel.hidden = true; });
   return w;
 }
 function chipsGroup(label, options, current, onPick, allLabel='Todos') {
@@ -989,13 +993,13 @@ function viewEstoque(v, f) {
       const prep = rs => rs.map(r => ({...r, _niv: ordemNiv(r.nivel), _site: sitSite(r)}));
       const base = prep(rows);
       const nSite = {}; base.filter(r => r.status === 'Ativo').forEach(r => { nSite[r._site] = (nSite[r._site] || 0) + 1; });
-      const siteOpts = SITES.filter(x => nSite[x] || x !== 'Sem controle'), siteLabels = Object.fromEntries(siteOpts.map(x => [x, `${x} (${nSite[x] || 0})`]));
+      const siteOpts = ['Risco de quebra','Usando reserva','Site abaixo'], siteLabels = Object.fromEntries(siteOpts.map(x => [x, `${x} (${nSite[x] || 0})`]));
       const statusOpts = [...new Set(rows.map(r => r.status))].sort();
       tabela = makeTable(ct, {
         rows: base, exportName:'estoque_posicao', search:['sku','nome_sku','nome_geral'], sort:{key:'_niv', dir:'asc'},
         initPills:{status:['Ativo']}, colsKey:'estoque_v2',
-        pills:[{key:'status', options:statusOpts, all:'Todos os status'}, {key:'curva', options:['A','B','C'], all:'Todas as curvas'}, {key:'nivel', options:NIVEIS, all:'Todos os níveis'}, {key:'classificacao', options:['Herói','Neutro','Ofensor','Sem custo','Sem venda'], all:'Toda margem'}, {key:'_site', options:siteOpts, labels:siteLabels, all:'Todo o site'}],
-        selects:[{key:'categoria',label:'Categoria'},{key:'linha',label:'Linha'},{key:'area_origem',label:'Área'}],
+        pills:[{key:'status', options:statusOpts, all:'Todos os status', single:true}, {key:'curva', options:['A','B','C'], all:'Todas as curvas'}, {key:'nivel', options:NIVEIS, all:'Todos os níveis', single:true}, {key:'classificacao', options:['Herói','Neutro','Ofensor','Sem custo','Sem venda'], all:'Toda margem'}, {key:'_site', options:siteOpts, labels:siteLabels, all:'Todo o site', single:true}],
+        selects:[{key:'categoria',label:'Categoria',single:true},{key:'linha',label:'Linha',single:true},{key:'area_origem',label:'Área',single:true}],
         extra:`<label class="toggle"><input type="checkbox" data-agr> Agrupar por nome geral</label>`,
         onBar: bar => {
           const t = bar.querySelector('[data-agr]'); t.checked = agrupado;
@@ -1012,7 +1016,7 @@ function viewEstoque(v, f) {
           {key:'estoque_fulfillment', label:'Estoque<br>fulfillment', num:true, html:r => `<span class="${n(r.estoque_fulfillment)<0?'neg-txt':''}">${fInt(r.estoque_fulfillment)}</span>`, csv:r => r.estoque_fulfillment},
           {key:'em_expedicao', label:'Em<br>expedição', num:true, fmt:fInt},
           {key:'reserva', label:'Reserva de<br>emergência', num:true, fmt:fInt},
-          {key:'estoque_disponivel', label:'Estoque<br>disponível', num:true, hl:true, fmt:fInt},
+          {key:'estoque_disponivel', label:'Estoque<br>disponível', num:true, hl:true, fmt:fInt, tip:'Disponível = fulfillment − em expedição − reserva de emergência. Considera também as unidades que estão inclusas em kits e caixas misteriosas: os itens dos kits saem deste mesmo estoque.'},
           {key:'no_site', label:'No site', num:true, sort:r => r.no_site_ilimitado ? 1e9 : r.no_site, html:r => r.no_site_ilimitado ? `${n(r.no_site) ? fInt(r.no_site) + ' + ' : ''}<span class="bdg b-cinza" title="Anúncio sem controle de estoque na Nuvemshop">sem controle</span>` : (r.no_site === null || r.no_site === undefined ? '—' : `<span class="${r.risco_quebra ? 'neg-txt' : usaReserva(r) ? 'alerta-txt' : ''}">${fInt(r.no_site)}</span>`), csv:r => r.no_site_ilimitado ? 'sem controle' : r.no_site},
           {key:'consumo_medio_dia', label:'Consumo/<br>dia', num:true, fmt:v => n(v) === null ? '—' : n(v).toLocaleString('pt-BR',{maximumFractionDigits:2})},
           {key:'consumo_medio_mes', label:'Consumo/<br>mês', num:true, fmt:fInt},
