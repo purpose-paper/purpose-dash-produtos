@@ -54,7 +54,6 @@ button{font-family:var(--ff-sans);cursor:pointer}
 .side-toggle:hover{background:rgba(255,254,243,.12);color:var(--pp-polen)}
 .side-toggle svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s ease}
 #app.collapsed .side{width:64px}
-#app.collapsed .wrap{max-width:none}
 #app.collapsed .side .logo,#app.collapsed .side .sect,#app.collapsed .side .nav .lbl-nav,#app.collapsed .side-foot .email{display:none}
 #app.collapsed .side-top{justify-content:center}
 #app.collapsed .side-toggle{margin:20px 0 14px}
@@ -74,7 +73,8 @@ button{font-family:var(--ff-sans);cursor:pointer}
 .side-foot .email{color:#E8DECF;word-break:break-all;margin-bottom:8px}
 .side-foot button{background:none;border:1px solid rgba(255,254,243,.3);color:var(--pp-polen);border-radius:var(--r-sm);padding:5px 10px;font-size:12px}
 main{flex:1;min-width:0}
-.wrap{max-width:1200px;margin:0 auto;padding:28px 28px 64px}
+.wrap{max-width:1200px;margin:0 auto;padding:28px 28px 64px;transition:max-width .18s ease}
+#app.collapsed .wrap{max-width:none}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:18px}
 .top h1{font-size:30px;line-height:1.15}
 .top .sub{font-family:var(--ff-sans);font-size:13px;color:var(--text-soft);margin-top:4px}
@@ -242,6 +242,91 @@ td.mid{min-width:150px}
   .stat .lbl{letter-spacing:1px;font-size:10px}
   .top h1{font-size:24px}
 }
+
+/* SUBPÁGINAS */
+.subtabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin:-4px 0 22px;font-family:var(--ff-sans);overflow-x:auto}
+.subtabs button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 16px 9px;font-size:13.5px;font-weight:600;color:var(--text-soft);white-space:nowrap;margin-bottom:-1px}
+.subtabs button:hover{color:var(--pp-marrom)}
+.subtabs button.on{color:var(--pp-marrom);border-bottom-color:var(--pp-marrom)}
+
+/* MODELO DE COMPRA */
+.mc-topo{margin-bottom:18px}
+.mc-topo-l{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.mc-topo-r{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:var(--ff-sans)}
+.mc-dirty{font-size:12px;color:#8A6420;font-weight:600}
+.mc-msg{font-size:12.5px;color:var(--text-soft)}
+.mc-del{color:var(--erro)!important;border-color:#F2C9BB!important}
+.mc-step{padding:0;overflow:visible;margin-bottom:18px}
+.mc-step .mc-body{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+.mc-head{display:flex;align-items:center;gap:0;width:100%;background:none;border:0;text-align:left;padding:18px 24px;border-radius:var(--r-md);flex-wrap:wrap;row-gap:4px}
+.mc-head:hover{background:#FCF8EE}
+.mc-head h3{font-size:19px;margin:0}
+.mc-card{padding:0}
+.mc-card .mc-head h3{font-size:17px}
+.mc-card .mc-body{padding:0 24px 22px}
+.mc-step .mc-head{border-bottom:1px solid var(--border);border-radius:var(--r-md) var(--r-md) 0 0}
+.mc-chev{width:18px;height:18px;stroke:var(--text-soft);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:8px;transform:rotate(90deg);transition:transform .15s ease;flex-shrink:0}
+.mc-resumo{display:none;margin-left:auto;padding-left:16px;font-family:var(--ff-sans);font-size:12.5px;color:var(--text-soft);text-align:right}
+.fechado .mc-chev{transform:none}
+.fechado .mc-body{display:none}
+.fechado .mc-resumo{display:block}
+.mc-step.fechado .mc-head{border-bottom:0;border-radius:var(--r-md)}
+.mc-l{padding:22px 24px;min-width:0}
+.mc-r{background:#FBF5E9;padding:22px 24px;border-left:1px solid var(--border);border-radius:0 0 var(--r-md) 0;min-width:0}
+.mc-num{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--pp-marrom);color:var(--pp-polen);font-family:var(--ff-sans);font-size:13px;font-weight:700;align-items:center;justify-content:center;margin-right:10px;flex-shrink:0}
+.mc-r h4{font-family:var(--ff-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);font-weight:600;margin-bottom:8px}
+.mc-fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:0 14px}
+.mc-fd span{display:flex;align-items:center;gap:6px;letter-spacing:1px}
+.mc-fd .input{padding:8px 10px}
+.input::placeholder{color:#B3A595}
+.mc-q{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:var(--pp-bege-soft);color:var(--pp-marrom);font-style:normal;font-size:10px;font-weight:700;cursor:help;letter-spacing:0;flex-shrink:0;text-transform:none}
+.mc-chk .toggle{padding-top:8px}
+.mc-res{padding:7px 0;border-bottom:1px dashed #E3D3B8}
+.mc-res:last-child{border-bottom:0}
+.mc-res .ln{display:flex;justify-content:space-between;gap:12px;font-family:var(--ff-sans);font-size:13px;align-items:baseline}
+.mc-res .ln b{font-family:var(--ff-mono);color:var(--pp-marrom);white-space:nowrap;font-size:13.5px}
+.mc-res .ct,.mc-ref .ct{font-family:var(--ff-sans);font-size:11.5px;color:var(--text-soft);margin-top:2px;line-height:1.45}
+.mc-res.mc-tot .ln span{font-weight:600;color:var(--pp-marrom)}
+.mc-res.mc-sel{background:#F5E9D2;margin:0 -8px;padding:7px 8px;border-radius:4px}
+.mc-res.mc-neg .ln b{color:var(--erro)}
+.mc-ref{padding:8px 0 10px;border-bottom:1px dashed #E3D3B8;font-family:var(--ff-sans);font-size:13px}
+.mc-ref-h b{color:var(--pp-marrom)}
+.mc-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.mc-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--ff-sans);font-size:12.5px;background:var(--pp-polen-deep);border:1px solid var(--border);border-radius:999px;padding:3px 4px 3px 10px}
+.mc-tag small{color:var(--text-soft)}
+.mc-tag button{border:0;background:none;color:var(--text-soft);font-size:15px;line-height:1;width:20px;height:20px;border-radius:50%}
+.mc-tag button:hover{background:#F2C9BB;color:var(--erro)}
+.mc-busca{position:relative}
+.mc-drop{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:30;background:var(--pp-branco);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-med);max-height:320px;overflow:auto;padding:4px}
+.mc-drop button{display:flex;flex-direction:column;align-items:flex-start;width:100%;border:0;background:none;text-align:left;padding:7px 9px;border-radius:4px;font-size:13px;color:var(--text)}
+.mc-drop button:hover{background:var(--pp-polen-deep)}
+.mc-drop small{color:var(--text-soft);font-size:11.5px}
+.mc-linha{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;font-family:var(--ff-sans)}
+.mc-linha .input{padding:7px 9px;font-size:13px}
+.mc-rm{border:0;background:none;color:var(--text-soft);width:28px;height:28px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center}
+.mc-rm:hover{background:#FBE8DE;color:var(--erro)}
+.mc-rm svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.mc-sub{border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 12px 0;margin-bottom:12px}
+.mc-l .seg{flex-wrap:wrap}
+.mc-bars{display:flex;gap:3px;align-items:flex-end;height:70px;margin-top:12px}
+.mc-bar{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;min-width:0}
+.mc-bar i{display:block;width:100%;border-radius:2px 2px 0 0}
+.mc-bar span{font-family:var(--ff-sans);font-size:9.5px;color:var(--text-soft);margin-top:2px}
+.mc-res-h{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:30px 0 14px}
+.mc-res-h h2{font-size:26px}
+.mc-tc td{font-family:var(--ff-sans)}
+.mc-tc th small{font-weight:400;opacity:.8}
+.mc-mm{max-height:none}
+.mc-mm table.t td,.mc-mm table.t th{white-space:nowrap;padding:8px 9px}
+.mc-mm .mc-fix{position:sticky;left:0;z-index:2;background:var(--pp-branco);font-family:var(--ff-sans);min-width:190px}
+.mc-mm th.mc-fix{z-index:3;background:var(--pp-marrom)}
+.mc-mm th.mc-cheg{background:var(--pp-laranja)}
+.mc-mm td.mc-cheg{background:#FFF6E3}
+.mc-mm tr.mc-blk td{background:var(--pp-polen-deep);font-weight:700;color:var(--pp-marrom);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+.mc-mm td.mc-totc{font-weight:bold;background:var(--pp-polen-deep)}
+.mc-tagm{font-size:9.5px;font-weight:600;letter-spacing:.5px;opacity:.85;text-transform:lowercase}
+.mc-pos{color:#6E7330}
+@media (max-width:980px){.mc-step .mc-body{grid-template-columns:1fr}.mc-r{border-left:0;border-top:1px solid var(--border);border-radius:0 0 var(--r-md) var(--r-md)}}
 </style>
 </head>
 <body>
@@ -273,6 +358,7 @@ td.mid{min-width:150px}
         <div><h1 id="title"></h1><div class="sub" id="subtitle"></div></div>
         <div class="top-right" id="top-right"></div>
       </div>
+      <nav class="subtabs" id="subtabs" hidden></nav>
       <div class="filters" id="filters"></div>
       <div id="view"></div>
     </div>
@@ -303,6 +389,7 @@ const ICON = {
   abc:'<line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="18" y1="20" x2="18" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/>',
   canais:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/>',
   area:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  compra:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8"/><path d="M8 11h2M12 11h0M14 11h2M8 15h2M12 15h0M14 15h2"/>',
   up:'<path d="M6 15l6-6 6 6"/>', mid:'<line x1="6" y1="12" x2="18" y2="12"/>', down:'<path d="M6 9l6 6 6-6"/>'
 };
 const svg = (p, cls='') => `<svg viewBox="0 0 24 24" class="${cls}">${p}</svg>`;
@@ -315,6 +402,16 @@ const VIEWS = [
   {id:'canais', label:'Canais', icon:'canais', title:'Performance por <em>canal</em>', sub:'E-commerce, atacado e vendas presenciais/eventos'},
   {id:'areas', label:'Área de origem', icon:'area', title:'Performance por <em>área de origem</em>', sub:'Lab, Publishing, Sourcing e Experience'},
 ];
+
+// Subpáginas (abas internas) de uma página do menu. Para criar outra aba, acrescente um item aqui.
+const SUBVIEWS = {
+  estoque: [
+    {id:'estoque', label:'Estoque', title:'Estoque <em>atual</em>', sub:'Disponível = fulfillment − em expedição − reserva de emergência (10%, mín. 5) · nível por curva ABC'},
+    {id:'modelo', label:'Modelo de compra', title:'Modelo de <em>compra</em>', sub:'Você informa as premissas; a tela mostra, passo a passo, a conta feita com cada número'},
+  ],
+};
+const subAtual = () => { const l = SUBVIEWS[S.view]; if (!l) return null; return l.find(x => x.id === S.sub[S.view]) || l[0]; };
+const hashAtual = () => S.view + (SUBVIEWS[S.view] && subAtual().id !== SUBVIEWS[S.view][0].id ? '/' + subAtual().id : '');
 
 /* ================= FORMAT ================= */
 const n = v => (v === null || v === undefined || v === '') ? null : Number(v);
@@ -353,7 +450,7 @@ const badgeSit = s => `<span class="bdg ${SIT_CLS[s]||'b-cinza'}">${esc(s)}</spa
 /* ================= STATE ================= */
 const hoje = iso(new Date());
 const S = {
-  view: 'performance', preset: 'mes', ini: null, fim: null,
+  view: 'performance', sub: {}, preset: 'mes', ini: null, fim: null,
   canais: [], areas: [], nivel: 'sku',
   dataRef: hoje, janela: 90, categorias: null, catsDefault: null, catsAll: null,
   metricaCanal: 'vendas_liquidas', metricaArea: 'vendas_liquidas', areaSel: null,
@@ -588,10 +685,11 @@ function renderNav() {
   document.querySelectorAll('#nav button').forEach((b, i) => b.title = VIEWS[i].label);
 }
 function renderTop() {
-  const v = VIEWS.find(x => x.id === S.view);
+  const v = subAtual() || VIEWS.find(x => x.id === S.view);
   document.getElementById('title').innerHTML = v.title;
   document.getElementById('subtitle').textContent = v.sub;
   const tr = document.getElementById('top-right');
+  if (S.view === 'estoque' && subAtual().id === 'modelo') { tr.innerHTML = ''; return; }
   if (S.view === 'estoque' || S.view === 'lancamentos') {
     tr.innerHTML = `<span class="flabel">Posição em</span><input type="date" class="select" id="dref" value="${S.dataRef}" max="${hoje}">
       <span id="upd"></span><button class="btn sec sm" id="refresh">Atualizar agora</button>`;
@@ -649,6 +747,11 @@ function renderView() {
   renderToken++; destroyCharts();
   const f = document.getElementById('filters'); f.innerHTML = '';
   const v = document.getElementById('view'); v.innerHTML = '';
+  const tabs = document.getElementById('subtabs'), subs = SUBVIEWS[S.view];
+  tabs.hidden = !subs;
+  tabs.innerHTML = subs ? subs.map(x => `<button type="button" data-sub="${x.id}" class="${subAtual().id === x.id ? 'on' : ''}">${x.label}</button>`).join('') : '';
+  if (subs && subAtual().id === 'modelo') { f.hidden = true; viewModelo(v); return; }
+  f.hidden = false;
   ({performance:viewPerformance, lancamentos:viewLancamentos, estoque:viewEstoque, abc:viewABC, canais:viewCanais, areas:viewAreas})[S.view](v, f);
 }
 
@@ -1225,7 +1328,12 @@ document.querySelectorAll('[data-logo]').forEach(d => d.appendChild(document.get
 document.getElementById('nav').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   S.view = b.dataset.v; renderNav(); renderTop(); renderView(); window.scrollTo(0, 0);
-  try { history.replaceState(null, '', '#' + S.view); } catch (_) {}
+  try { history.replaceState(null, '', '#' + hashAtual()); } catch (_) {}
+});
+document.getElementById('subtabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-sub]'); if (!b) return;
+  S.sub[S.view] = b.dataset.sub; renderTop(); renderView(); window.scrollTo(0, 0);
+  try { history.replaceState(null, '', '#' + hashAtual()); } catch (_) {}
 });
 document.addEventListener('click', e => { document.querySelectorAll('.ms-panel').forEach(p => { if (!p.parentElement.contains(e.target)) p.hidden = true; }); });
 document.getElementById('login-form').addEventListener('submit', async e => {
@@ -1253,7 +1361,9 @@ function mostrar(session) {
   document.getElementById('app').hidden = !logado;
   if (logado) {
     document.getElementById('u-email').textContent = session.user && session.user.email || '';
-    if (!iniciado) { iniciado = true; const h = location.hash.slice(1); if (VIEWS.some(v => v.id === h)) S.view = h; renderNav(); renderTop(); renderView(); }
+    if (!iniciado) { iniciado = true; const [h, hs] = location.hash.slice(1).split('/');
+      if (h === 'modelo') { S.view = 'estoque'; S.sub.estoque = 'modelo'; }
+      else if (VIEWS.some(v => v.id === h)) { S.view = h; if (hs && SUBVIEWS[h] && SUBVIEWS[h].some(x => x.id === hs)) S.sub[h] = hs; } renderNav(); renderTop(); renderView(); }
   } else { iniciado = false; cache.clear(); }
 }
 sb.auth.getSession().then(({data}) => mostrar(data.session));
@@ -1389,6 +1499,710 @@ function simulacoes(host) {
   }).catch(e => { if (tk !== renderToken) return; lista.innerHTML = `<div class="callout alerta" style="margin:0">As simulações ainda não estão ativadas no banco (falta rodar o arquivo simulacao_caixas.sql no Supabase).<br><small>${esc(e.message || '')}</small></div>`; host.querySelector('[data-novo]').disabled = true; });
 }
 
+/* ================= MODELO DE COMPRA ================= */
+// Mesmo formato do jsonb salvo pelo hub (forecast_modelos.dados): percentuais guardados em fração (0,1 = 10%).
+const MC_FER = [
+  {nome:'Ano Novo Chinês 2027 (fábricas fechadas)', inicio:'2027-01-30', fim:'2027-02-20'},
+  {nome:'Natal e Ano Novo (férias coletivas)', inicio:'2026-12-21', fim:'2027-01-04'},
+  {nome:'Carnaval 2027', inicio:'2027-02-06', fim:'2027-02-10'},
+  {nome:'Semana Santa 2027', inicio:'2027-03-25', fim:'2027-03-28'},
+  {nome:'Ano Novo Chinês 2028 (fábricas fechadas)', inicio:'2028-01-19', fim:'2028-02-09'},
+];
+const MC_TIPOS = {
+  importacao:{label:'Importação', prazos:[45,30,15], fer:[0],
+    parcelas:[{rotulo:'Sinal ao fornecedor', pct:.5, base:'pedido', dias:0},{rotulo:'Saldo ao fornecedor', pct:.5, base:'producao', dias:0}]},
+  impressao:{label:'Impressão (gráfica)', prazos:[60,5,0], fer:[1,2,3],
+    parcelas:[{rotulo:'Entrada à gráfica', pct:.5, base:'pedido', dias:0},{rotulo:'Saldo à gráfica', pct:.5, base:'chegada', dias:30}]},
+  compra:{label:'Compra (fornecedor nacional)', prazos:[0,10,0], fer:[1,2],
+    parcelas:[{rotulo:'Pagamento ao fornecedor', pct:1, base:'chegada', dias:30}]},
+};
+const MC_IMP = {ii:.144, ipi:.0975, pis:.021, cofins:.0965, icms:.18, afrmm:.08, siscomex:347.02, ncm:'4820.10.00'};
+const MC_BASE = {pedido:'no pedido', producao:'fim da produção', chegada:'na chegada'};
+const MC_CEN = [['pess','Pessimista'],['real','Realista'],['otim','Otimista']];
+const MC_MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const MC_H = {
+  tipo:'Define os prazos, as parcelas e os feriados padrão. Trocar o tipo redefine esses campos.',
+  quantidade:'Quantas unidades você quer comprar. Frete e despesas totais são divididos por ela, e ela entra na simulação de estoque.',
+  lancamento:'Marque se o produto ainda não existe: o giro, o preço médio e o custo vêm de produtos parecidos (similares).',
+  skus:'SKUs que vão no pedido (ex.: as cores do Baby Journal). Vendas e estoque são somados; preço de capa e custo, pela média.',
+  nome_lanc:'Só para identificar o lançamento.',
+  preco_capa_lanc:'Preço de capa previsto para o lançamento.',
+  similares:'Produtos parecidos já à venda. Giro, preço médio e custo vêm da média deles; o estoque inicial do lançamento é 0.',
+  fator_lanc:'Quanto o lançamento vende em relação à média de um similar. 100% = igual; 130% = 30% a mais.',
+  giro:'Meses completos usados para calcular a venda média. 12 meses = os 12 meses anteriores ao mês atual.',
+  sazonal:'Com 12 meses ou mais de base, cada mês futuro usa a venda do mesmo mês do calendário na base (dezembro usa dezembro). Desmarcado, todo mês usa a média.',
+  cen:'Ajuste sobre a venda média em cada cenário. −10 = vender 10% menos.',
+  campanhas:'Meses futuros com venda extra prevista. A demanda do mês é multiplicada por (1 + % extra).',
+  preco:'Preço usado na receita do pedido, na falta em R$ e na entrada de caixa.',
+  media_manual:'Vazio = vendas no período-base ÷ número de meses. Preencha para usar outro valor (a sazonalidade é mantida, na mesma proporção).',
+  data_pedido:'Data em que o pedido sai. Todos os prazos contam a partir dela.',
+  chegada_manual:'Vazio = calculada pelos prazos. Preencha se já souber a data de chegada; ela substitui a calculada.',
+  d_producao:'Dias de produção no fornecedor (ou de impressão, ou de separação). Feriados que caem nesse período empurram o fim da produção.',
+  d_transito:'Dias entre o fim da produção e a chegada (trânsito marítimo na importação; entrega nos demais).',
+  d_desembaraco:'Dias para liberar a carga na alfândega e nacionalizar.',
+  feriados:'Períodos em que a fábrica para. Se começam antes do fim da produção, os dias parados são somados ao prazo.',
+  cambio:'Vazio = dólar de hoje (AwesomeAPI). Preencha para simular outro câmbio.',
+  fob_usd:'Valor da cotação do fornecedor, por unidade, em dólar (sem frete).',
+  frete_usd:'Frete internacional do pedido inteiro, em dólar. O modelo divide pela quantidade.',
+  despesas_brl:'Total de despesas no Brasil: nacionalização, armazenagem, despachante, capatazia. Dividido pela quantidade.',
+  siscomex:'Taxa de registro da DI, por DI. Dividida pela quantidade.',
+  impostos:'Pelo NCM aplica as alíquotas abaixo. Isenção (livro) zera II, IPI, PIS, COFINS e ICMS.',
+  ncm:'Classificação fiscal do produto. Padrões = alíquotas da última DI do Baby Journal.',
+  ii:'Imposto de importação, sobre o valor aduaneiro (FOB + frete).',
+  ipi:'Sobre (valor aduaneiro + II). Gera crédito a recuperar.',
+  pis:'Sobre o valor aduaneiro.', cofins:'Sobre o valor aduaneiro.',
+  icms:'Calculado "por dentro": (VA + II + IPI + PIS + COFINS) × ICMS ÷ (1 − ICMS). Gera crédito a recuperar.',
+  afrmm:'Adicional ao frete para renovação da marinha mercante, sobre o frete internacional.',
+  custo_unit:'Vazio = padrão: impressão usa o último custo do cadastro; compra usa o último custo + acréscimo; lançamento usa a média do custo dos similares.',
+  acrescimo:'Reajuste esperado sobre o último custo de compra.',
+  frete_brl:'Frete do pedido inteiro até o nosso estoque. Dividido pela quantidade.',
+  outros_brl:'Outros custos do pedido inteiro (prova, arte, embalagem…). Divididos pela quantidade.',
+  parcelas:'Como o valor do produto é pago ao fornecedor (na importação, sobre o FOB). Cada parcela sai do caixa na data-base + dias.',
+  estoque_manual:'Vazio = estoque disponível no site (lançamento = 0).',
+  cobertura_alvo:'Por quantos meses o pedido deve durar depois de chegar. Usado na quantidade sugerida.',
+  seguranca:'Meses de venda guardados como folga. Antecipa o próximo pedido e entra na quantidade sugerida. Curva A: pelo menos 1.',
+};
+
+function mcPadrao(tipo = 'importacao') {
+  const T = MC_TIPOS[tipo] || MC_TIPOS.importacao;
+  return {tipo, lancamento:false, sku:'', skus:[], nome_lanc:'', preco_capa_lanc:null, similares:[], fator_lanc:1, quantidade:null,
+    giro:'12', giro_ini:'', giro_fim:'', sazonal:true, cen:{pess:-.1, real:0, otim:.1}, campanhas:[], estoque_manual:null,
+    cobertura_alvo:12, seguranca:1, cambio:null, fob_usd:null, frete_usd:null, despesas_brl:null, siscomex:MC_IMP.siscomex,
+    impostos:'normal', ncm:MC_IMP.ncm, ii:MC_IMP.ii, ipi:MC_IMP.ipi, pis:MC_IMP.pis, cofins:MC_IMP.cofins, icms:MC_IMP.icms, afrmm:MC_IMP.afrmm,
+    custo_unit:null, acrescimo:.03, frete_brl:null, outros_brl:null, preco_venda_tipo:'medio', preco_medio_manual:null, media_manual:null,
+    data_pedido:hoje, d_producao:T.prazos[0], d_transito:T.prazos[1], d_desembaraco:T.prazos[2], chegada_manual:null,
+    feriados:T.fer.map(i => ({...MC_FER[i]})), parcelas:T.parcelas.map(p => ({...p}))};
+}
+const MC = {d:null, id:null, nome:'', dirty:false, lista:null, info:new Map(), nomes:new Map(), cot:null, cotErro:false,
+  msg:'', msgErro:false, confExcl:false, cen:'real', host:null, carregando:false, fechados:new Set()};
+try { MC.fechados = new Set(JSON.parse(localStorage.getItem('mc_fechados') || '[]')); } catch (_) {}
+const MC_SECOES = ['p1','p2','p3','p4','p5','p6','r1','r2','r3'];
+const mcSalvaFechados = () => { try { localStorage.setItem('mc_fechados', JSON.stringify([...MC.fechados])); } catch (_) {} };
+const mcHead = (id, titulo, resumo, num) => `<button type="button" class="mc-head" data-a="tog" data-v="${id}" aria-expanded="${!MC.fechados.has(id)}" title="${MC.fechados.has(id) ? 'Abrir' : 'Fechar'} seção">
+  <svg class="mc-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>${num ? `<span class="mc-num">${num}</span>` : ''}<h3>${titulo}</h3><span class="mc-resumo">${resumo || ''}</span></button>`;
+const mcAbre = (id, titulo, resumo, mb = true) => `<div class="card mc-card ${MC.fechados.has(id) ? 'fechado' : ''}" ${mb ? 'style="margin-bottom:18px"' : ''}>${mcHead(id, titulo, resumo)}<div class="mc-body">`;
+
+/* ---------- helpers ---------- */
+const mcMesAtual = hoje.slice(0,7);
+const mcAddMes = (k, d) => { let y = +k.slice(0,4), m = +k.slice(5,7) - 1 + d; y += Math.floor(m / 12); m = ((m % 12) + 12) % 12; return y + '-' + String(m + 1).padStart(2,'0'); };
+const mcMesLbl = k => k ? MC_MES[+k.slice(5,7) - 1] + '/' + k.slice(2,4) : '—';
+const mcDiasMes = k => new Date(+k.slice(0,4), +k.slice(5,7), 0).getDate();
+const fN = (v, d = 0) => n(v) === null || !isFinite(n(v)) ? '—' : n(v).toLocaleString('pt-BR', {minimumFractionDigits:d, maximumFractionDigits:d});
+const fUn = v => fN(v, 0) + ' un.';
+const fDataMes = s => s ? fDate(s) : '—';
+function mcParse(s) {
+  s = String(s ?? '').trim().replace(/R\$|US\$|%|\s/g, '');
+  if (!s) return null;
+  if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+  else if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+  const v = Number(s.replace('−','-')); return isFinite(v) ? v : null;
+}
+const mcIn = (v, esc100) => { v = n(v); if (v === null) return ''; if (esc100) v = v * 100; return (Math.round(v * 1e6) / 1e6).toLocaleString('pt-BR', {maximumFractionDigits:6, useGrouping:false}); };
+function mcGet(path) { return path.split('.').reduce((o, k) => o == null ? undefined : o[k], MC.d); }
+function mcSet(path, v) { const ks = path.split('.'); let o = MC.d; ks.slice(0,-1).forEach(k => o = o[k]); o[ks[ks.length - 1]] = v; }
+const mcQ = k => MC_H[k] ? `<i class="mc-q" tabindex="0" title="${esc(MC_H[k])}">?</i>` : '';
+function mcFld(k, label, o = {}) {
+  const v = mcGet(k), t = o.t || 'num';
+  const val = t === 'num' ? mcIn(v, o.pct) : (v ?? '');
+  return `<label class="field mc-fd" ${o.w ? `style="${o.w}"` : ''}><span>${label}${mcQ(o.h || k.split('.')[0])}</span>
+    <input class="input" type="${t === 'date' ? 'date' : 'text'}" data-k="${k}" data-t="${t}" ${o.pct ? 'data-pct="1"' : ''} ${o.int ? 'data-int="1"' : ''} value="${esc(val)}" placeholder="${esc(o.ph ?? '')}" ${t === 'num' ? 'inputmode="decimal"' : ''}></label>`;
+}
+function mcSeg(k, opts, cur, label, h) {
+  return `<div class="field mc-fd" style="grid-column:1/-1"><span>${label}${mcQ(h || k)}</span><div class="seg">${opts.map(([v, l]) => `<button type="button" class="${String(cur) === String(v) ? 'on' : ''}" data-a="set" data-k="${k}" data-v="${esc(v)}">${l}</button>`).join('')}</div></div>`;
+}
+const mcLn = (lbl, val, conta, cls = '') => `<div class="mc-res ${cls}"><div class="ln"><span>${lbl}</span><b>${val}</b></div>${conta ? `<div class="ct">${conta}</div>` : ''}</div>`;
+const mcNota = (txt, cls = 'note') => `<div class="callout ${cls}" style="margin:10px 0 0">${txt}</div>`;
+
+/* ---------- dados ---------- */
+async function mcGarantir() {
+  const d = MC.d, falta = [...new Set([...(d.skus || []), ...(d.similares || [])])].filter(s => s && !MC.info.has(s));
+  if (!falta.length) return;
+  MC.carregando = true; mcRender();
+  try {
+    const r = await sb.rpc('forecast_modelo_skus', {p_skus:falta});
+    if (r.error) throw r.error;
+    (r.data || []).forEach(x => { MC.info.set(x.sku, x); MC.nomes.set(x.sku, x.nome); });
+    falta.forEach(s => { if (!MC.info.has(s)) MC.info.set(s, {sku:s, nome:'SKU não encontrado', meses:[], entradas:[]}); });
+  } catch (e) { MC.msg = 'Não consegui buscar os dados dos SKUs: ' + (e.message || e); MC.msgErro = true; }
+  MC.carregando = false; mcRender();
+}
+async function mcCotacao() {
+  try {
+    const j = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL').then(r => r.json());
+    MC.cot = {bid:+j.USDBRL.bid, data:String(j.USDBRL.create_date || '').slice(0,10)};
+    if (!(MC.cot.bid > 0)) throw new Error('sem cotação');
+  } catch (_) { MC.cot = null; MC.cotErro = true; }
+  mcRender();
+}
+async function mcCarregarLista() {
+  const r = await sb.rpc('forecast_modelos_lista');
+  MC.lista = r.error ? [] : (r.data || []);
+  if (r.error) { MC.msg = 'Não consegui carregar as simulações salvas: ' + r.error.message; MC.msgErro = true; }
+  mcRender();
+}
+async function mcAbrir(id) {
+  const r = await sb.rpc('forecast_modelo', {p_id:id});
+  if (r.error || !r.data) { MC.msg = 'Não consegui abrir a simulação.'; MC.msgErro = true; mcRender(); return; }
+  const dados = r.data.dados || {};
+  const d = Object.assign(mcPadrao(dados.tipo || 'importacao'), dados);
+  if ((!d.skus || !d.skus.length) && d.sku) d.skus = [d.sku];
+  d.cen = Object.assign({pess:-.1, real:0, otim:.1}, d.cen || {});
+  MC.d = d; MC.id = r.data.id; MC.nome = r.data.nome || ''; MC.dirty = false; MC.msg = ''; MC.confExcl = false;
+  mcRender(); mcGarantir();
+}
+async function mcSalvar(nova) {
+  let nome = (MC.nome || '').trim();
+  if (!nome) { MC.msg = 'Dê um nome para a simulação antes de salvar.'; MC.msgErro = true; mcRender(); return; }
+  if (nova && MC.id && (MC.lista || []).some(s => s.nome === nome)) nome += ' (cópia)';
+  MC.msg = 'Salvando…'; MC.msgErro = false; mcRender();
+  const r = await sb.rpc('forecast_modelo_salvar', {p_id: nova ? null : MC.id, p_nome: nome, p_dados: MC.d});
+  if (r.error) { MC.msg = /permiss/i.test(r.error.message) ? 'Só editores podem salvar. Você pode simular à vontade, mas sem salvar.' : 'Não foi possível salvar: ' + r.error.message; MC.msgErro = true; mcRender(); return; }
+  MC.id = r.data; MC.nome = nome; MC.dirty = false; MC.msg = 'Simulação salva.'; MC.msgErro = false;
+  await mcCarregarLista();
+}
+async function mcExcluir() {
+  if (!MC.id) return;
+  if (!MC.confExcl) { MC.confExcl = true; mcRender(); return; }
+  const r = await sb.rpc('forecast_modelo_excluir', {p_id:MC.id});
+  MC.confExcl = false;
+  if (r.error) { MC.msg = /permiss/i.test(r.error.message) ? 'Só editores podem excluir simulações.' : 'Não foi possível excluir: ' + r.error.message; MC.msgErro = true; mcRender(); return; }
+  MC.d = mcPadrao(); MC.id = null; MC.nome = ''; MC.dirty = false; MC.msg = 'Simulação excluída.'; MC.msgErro = false;
+  await mcCarregarLista();
+}
+
+/* ---------- contas ---------- */
+function mcBaseMeses(d) {
+  let ini, fim;
+  if (d.giro === 'custom' && d.giro_ini && d.giro_fim) { ini = d.giro_ini <= d.giro_fim ? d.giro_ini : d.giro_fim; fim = d.giro_ini <= d.giro_fim ? d.giro_fim : d.giro_ini; }
+  else { const t = d.giro === 'custom' ? 12 : (+d.giro || 12); fim = mcAddMes(mcMesAtual, -1); ini = mcAddMes(mcMesAtual, -t); }
+  const r = []; for (let k = ini; k <= fim && r.length < 60; k = mcAddMes(k, 1)) r.push(k);
+  return r;
+}
+function mcCalc(d, cenKey) {
+  const R = {}, T = MC_TIPOS[d.tipo] || MC_TIPOS.importacao;
+  const refs = (d.lancamento ? d.similares : d.skus).map(s => MC.info.get(s)).filter(x => x && x.nome !== 'SKU não encontrado');
+  R.refs = refs;
+  const Q = Math.max(0, Math.round(n(d.quantidade) || 0)); R.Q = Q;
+  R.fator = d.lancamento ? (n(d.fator_lanc) ?? 1) : 1;
+  R.meses = mcBaseMeses(d); R.nMeses = R.meses.length;
+  const maps = refs.map(r => new Map((r.meses || []).map(x => [x.mes, x])));
+  const div = d.lancamento ? Math.max(refs.length, 1) : 1;
+  R.serie = R.meses.map(m => { let q = 0, fl = 0;
+    maps.forEach(mp => { const x = mp.get(m); if (x) { q += +x.q || 0; fl += +x.fl || 0; } });
+    return {mes:m, q:q / div, fl:fl / div}; });
+  R.vendasBase = sum(R.serie, 'q'); R.flBase = sum(R.serie, 'fl');
+  R.mediaCalc = R.nMeses ? R.vendasBase / R.nMeses * R.fator : 0;
+  R.media = n(d.media_manual) ?? R.mediaCalc;
+  R.precoMedio = R.vendasBase > 0 ? R.flBase / R.vendasBase : null;
+  const media = k => { const v = refs.map(r => n(r[k])).filter(x => x > 0); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  R.precoCapa = d.lancamento ? n(d.preco_capa_lanc) : media('preco_capa');
+  R.custoRef = media('custo_atual');
+  R.preco = d.preco_venda_tipo === 'capa' ? R.precoCapa : d.preco_venda_tipo === 'manual' ? n(d.preco_medio_manual) : R.precoMedio;
+  R.descCapa = R.precoCapa && R.preco ? 1 - R.preco / R.precoCapa : null;
+  const qs = R.serie.map(s => s.q).sort((a, b) => a - b);
+  R.mediana = qs.length ? qs[Math.floor(qs.length / 2)] : 0;
+  R.serie.forEach(s => s.pico = R.mediana > 0 && s.q >= 1.5 * R.mediana);
+  R.picos = R.serie.filter(s => s.pico);
+  R.cenPct = n(d.cen && d.cen[cenKey]) || 0;
+  R.usaSaz = !!d.sazonal && R.nMeses >= 12;
+  R.saz = {};
+  if (R.usaSaz) { const g = {}; R.serie.forEach(s => { const mo = s.mes.slice(5,7); (g[mo] = g[mo] || []).push(s.q); });
+    Object.entries(g).forEach(([mo, v]) => R.saz[mo] = v.reduce((a, b) => a + b, 0) / v.length * R.fator); }
+  R.picoMes = new Set(R.picos.map(s => s.mes.slice(5,7)));
+  const escala = R.mediaCalc > 0 ? R.media / R.mediaCalc : 1;
+  R.camp = {}; (d.campanhas || []).forEach(c => { if (c.mes) R.camp[c.mes] = (R.camp[c.mes] || 1) * (1 + (n(c.extra) ?? .5)); });
+  R.demMes = k => { const mo = k.slice(5,7);
+    const b = R.usaSaz && R.saz[mo] !== undefined && R.mediaCalc > 0 ? R.saz[mo] * escala : R.media;
+    return Math.max(0, b * (1 + R.cenPct) * (R.camp[k] || 1)); };
+  R.vendaMes = R.media * (1 + R.cenPct);
+
+  // prazos
+  R.prod = n(d.d_producao) ?? T.prazos[0]; R.trans = n(d.d_transito) ?? T.prazos[1];
+  R.desemb = d.tipo === 'importacao' ? (n(d.d_desembaraco) ?? T.prazos[2]) : 0;
+  const ped = d.data_pedido || hoje; R.pedido = ped;
+  let fim = addDays(ped, R.prod); R.parados = 0; R.impactos = [];
+  (d.feriados || []).filter(f => f.inicio && f.fim && f.fim >= f.inicio).sort((a, b) => a.inicio < b.inicio ? -1 : a.inicio > b.inicio ? 1 : 0).forEach(f => {
+    if (f.inicio <= fim && f.fim >= ped) { const a = f.inicio > ped ? f.inicio : ped, k = diffDays(a, f.fim);
+      fim = addDays(fim, k); R.parados += k; R.impactos.push({nome:f.nome || 'Feriado', dias:k}); }
+  });
+  R.fimProd = fim; R.chegadaCalc = addDays(fim, R.trans + R.desemb);
+  R.chegada = d.chegada_manual || R.chegadaCalc;
+  R.prazoTotal = diffDays(ped, R.chegada) - 1;
+
+  // custo por unidade
+  R.imp = d.tipo === 'importacao';
+  if (R.imp) {
+    R.cotacao = MC.cot ? MC.cot.bid : null;
+    R.cambio = n(d.cambio) ?? R.cotacao;
+    const c = R.cambio || 0, isento = d.impostos === 'livro';
+    const p = k => (isento && k !== 'afrmm') ? 0 : (n(d[k]) ?? MC_IMP[k]);
+    R.p = {ii:p('ii'), ipi:p('ipi'), pis:p('pis'), cofins:p('cofins'), icms:p('icms'), afrmm:p('afrmm')};
+    const u = {};
+    u.fob = (n(d.fob_usd) || 0) * c;
+    u.frete = Q ? (n(d.frete_usd) || 0) * c / Q : 0;
+    u.va = u.fob + u.frete;
+    u.ii = u.va * R.p.ii; u.ipi = (u.va + u.ii) * R.p.ipi; u.pis = u.va * R.p.pis; u.cofins = u.va * R.p.cofins;
+    u.icms = R.p.icms < 1 ? (u.va + u.ii + u.ipi + u.pis + u.cofins) * R.p.icms / (1 - R.p.icms) : 0;
+    u.afrmm = u.frete * R.p.afrmm;
+    R.siscomex = n(d.siscomex) ?? MC_IMP.siscomex;
+    u.sis = Q ? R.siscomex / Q : 0; u.desp = Q ? (n(d.despesas_brl) || 0) / Q : 0;
+    R.u = u;
+    R.custoUn = u.va + u.ii + u.ipi + u.pis + u.cofins + u.icms + u.afrmm + u.sis + u.desp;
+    R.credito = u.ipi + u.icms; R.baseProd = u.fob * Q;
+  } else {
+    R.custoPadrao = R.custoRef === null ? null : (d.tipo === 'compra' && !d.lancamento ? R.custoRef * (1 + (n(d.acrescimo) ?? .03)) : R.custoRef);
+    R.custoProd = n(d.custo_unit) ?? R.custoPadrao ?? 0;
+    R.freteU = Q ? (n(d.frete_brl) || 0) / Q : 0; R.outrosU = Q ? (n(d.outros_brl) || 0) / Q : 0;
+    R.custoUn = R.custoProd + R.freteU + R.outrosU; R.credito = 0; R.baseProd = R.custoProd * Q;
+  }
+  R.totalPedido = Q * R.custoUn;
+
+  // pagamentos
+  const refD = {pedido:ped, producao:R.fimProd, chegada:R.chegada};
+  R.somaPct = (d.parcelas || []).reduce((s, p) => s + (n(p.pct) || 0), 0);
+  R.pagtos = (d.parcelas || []).map(p => ({rot:p.rotulo || 'Parcela', data:addDays(refD[p.base] || ped, Math.round(n(p.dias) || 0)),
+    valor:R.baseProd * (n(p.pct) || 0), conta:`${fPct((n(p.pct) || 0) * 100, 0)} × ${fBRL(R.baseProd)} (${R.imp ? 'FOB do pedido' : 'produto'}) · ${MC_BASE[p.base] || ''}${n(p.dias) ? ' + ' + fInt(p.dias) + ' dias' : ''}`}));
+  if (R.imp) {
+    const fr = (n(d.frete_usd) || 0) * (R.cambio || 0);
+    if (fr) R.pagtos.push({rot:'Frete internacional', data:R.fimProd, valor:fr, conta:`US$ ${fN(d.frete_usd, 2)} × R$ ${fN(R.cambio, 4)} · no embarque (fim da produção)`, auto:true});
+    const u = R.u, imp = (u.ii + u.ipi + u.pis + u.cofins + u.icms + u.afrmm) * Q, desp = n(d.despesas_brl) || 0, sis = Q ? R.siscomex : 0;
+    if (imp + desp + sis > 0) R.pagtos.push({rot:d.impostos === 'livro' ? 'Despesas de chegada (sem impostos: livro)' : 'Impostos e despesas de chegada', data:R.chegada, valor:imp + desp + sis,
+      conta:`impostos ${fBRL(imp)} + despesas ${fBRL(desp)} + Siscomex ${fBRL(sis)} · na chegada`, auto:true});
+  } else {
+    const v = (n(d.frete_brl) || 0) + (n(d.outros_brl) || 0);
+    if (v) R.pagtos.push({rot:'Frete e outros custos', data:R.chegada, valor:v, conta:`frete ${fBRL(n(d.frete_brl) || 0)} + outros ${fBRL(n(d.outros_brl) || 0)} · na chegada`, auto:true});
+  }
+  R.pagtos.sort((a, b) => a.data < b.data ? -1 : a.data > b.data ? 1 : 0);
+  R.totalSai = sum(R.pagtos, 'valor');
+
+  // simulação mês a mês
+  R.E0calc = d.lancamento ? 0 : refs.reduce((s, r) => s + (+r.estoque_site || 0), 0);
+  R.E0 = n(d.estoque_manual) ?? R.E0calc;
+  R.seg = n(d.seguranca) ?? 1; R.cob = n(d.cobertura_alvo) ?? 12;
+  const kCheg = R.chegada.slice(0,7), jaChegou = R.chegada <= hoje;
+  let old = Math.max(0, R.E0), ps = 0, chegou = false, saldo = 0;
+  R.oldEnd = old <= 0 ? hoje : null; R.pedEnd = null; R.faltaAntes = 0; R.estNaChegada = null;
+  const pagM = {}; R.pagtos.forEach(p => { const k = p.data.slice(0,7) < mcMesAtual ? mcMesAtual : p.data.slice(0,7); pagM[k] = (pagM[k] || 0) + p.valor; });
+  const dataEm = (k, dia) => k + '-' + String(Math.min(mcDiasMes(k), Math.max(1, Math.floor(dia)))).padStart(2,'0');
+  const vender = (k, dem, d0, daily, row) => {
+    if (dem <= 0) return;
+    const s1 = Math.min(old, dem);
+    if (old > 0 && dem >= old && R.oldEnd === null) R.oldEnd = dataEm(k, d0 + (daily > 0 ? old / daily : 0));
+    old -= s1; let rem = dem - s1, s2 = 0;
+    if (chegou) { s2 = Math.min(ps, rem);
+      if (Q > 0 && ps > 0 && rem >= ps && R.pedEnd === null) R.pedEnd = dataEm(k, d0 + (daily > 0 ? (s1 + ps) / daily : 0));
+      ps -= s2; rem -= s2; }
+    row.vend += s1 + s2; row.vendPed += s2; row.falta += rem; if (!chegou) R.faltaAntes += rem;
+  };
+  R.rows = [];
+  for (let i = 0; i < 30; i++) {
+    const k = mcAddMes(mcMesAtual, i), dm = mcDiasMes(k), d0 = i === 0 ? +hoje.slice(8,10) : 1, daily = R.demMes(k) / dm;
+    const row = {mes:k, dem:daily * (dm - d0 + 1), chega:0, vend:0, vendPed:0, falta:0, est:0, sai:pagM[k] || 0, entra:0, saldo:0};
+    if (!chegou && (jaChegou ? i === 0 : k === kCheg)) {
+      const a = jaChegou ? d0 : +R.chegada.slice(8,10), antes = daily * Math.max(0, a - d0);
+      vender(k, antes, d0, daily, row);
+      chegou = true; R.estNaChegada = old; ps = Q; row.chega = Q; row.chegada = true;
+      vender(k, row.dem - antes, Math.max(a, d0), daily, row);
+    } else vender(k, row.dem, d0, daily, row);
+    row.est = old + ps; row.entra = row.vendPed * (R.preco || 0); saldo += row.entra - row.sai; row.saldo = saldo;
+    R.rows.push(row);
+  }
+  if (R.estNaChegada === null) R.estNaChegada = old;
+  R.cobreMeses = R.vendaMes > 0 ? Q / R.vendaMes : null;
+  R.proxPedido = R.pedEnd ? addDays(R.pedEnd.slice(0,7) + '-15', -R.prazoTotal - Math.round(R.seg * 30.4)) : null;
+  const demEntre = (a, b) => { let t = 0;
+    for (let k = a.slice(0,7); k <= b.slice(0,7); k = mcAddMes(k, 1)) { const dm = mcDiasMes(k);
+      const ini = k === a.slice(0,7) ? +a.slice(8,10) : 1, fimD = k === b.slice(0,7) ? +b.slice(8,10) - 1 : dm;
+      if (fimD >= ini) t += R.demMes(k) / dm * (fimD - ini + 1); }
+    return t; };
+  R.fimN = addDays(R.chegada, Math.round(R.cob * 30.4));
+  R.demN = demEntre(R.chegada, R.fimN);
+  R.segUn = R.seg * R.vendaMes;
+  R.qtdN = Math.max(0, R.demN + R.segUn - R.estNaChegada);
+  R.receita = Q * (R.preco || 0); R.margem = R.receita - R.totalPedido; R.margemPct = R.receita > 0 ? R.margem / R.receita : null;
+  const pg = R.totalSai > 0 ? R.rows.find(r => r.mes >= kCheg && r.saldo >= 0) : null; R.pagaEm = pg ? pg.mes : null;
+  const iFim = R.pedEnd ? R.rows.findIndex(r => r.mes === R.pedEnd.slice(0,7)) : -1, iCheg = R.rows.findIndex(r => r.mes === kCheg);
+  R.ultimo = Math.min(29, Math.max(iFim >= 0 ? iFim + 1 : 29, iCheg + 1, 2));
+  R.kCheg = kCheg;
+  return R;
+}
+function mcDivisao(d, R) {
+  const mesesAte = Math.max(0, (diffDays(hoje, R.chegada) - 1) / 30.4);
+  const it = d.skus.map(s => MC.info.get(s)).filter(x => x && x.nome !== 'SKU não encontrado').map(x => {
+    const mp = new Map((x.meses || []).map(m => [m.mes, m]));
+    const qb = R.meses.reduce((t, m) => t + (+(mp.get(m) || {}).q || 0), 0);
+    const v = R.nMeses ? qb / R.nMeses * (1 + R.cenPct) : 0, e = Math.max(0, +x.estoque_site || 0);
+    return {sku:x.sku, nome:x.nome, curva:x.curva, qb, v, e, ec:Math.max(0, e - v * mesesAte), falta:Math.max(0, v * mesesAte - e),
+      acaba: v > 0 ? addDays(hoje, Math.round(e / v * 30.4)) : null};
+  });
+  const Q = R.Q, sv = it.reduce((t, x) => t + x.v, 0);
+  const f = T => it.reduce((t, x) => t + Math.max(0, T * x.v - x.ec), 0);
+  let T = 0;
+  if (Q > 0 && sv > 0) { let lo = 0, hi = 1; while (f(hi) < Q && hi < 1e5) hi *= 2; for (let i = 0; i < 80; i++) { const m = (lo + hi) / 2; if (f(m) < Q) lo = m; else hi = m; } T = (lo + hi) / 2; }
+  it.forEach(x => { x.raw = Math.max(0, T * x.v - x.ec); x.sug = Math.floor(x.raw); });
+  let resto = Q - it.reduce((t, x) => t + x.sug, 0);
+  [...it].sort((a, b) => (b.raw - b.sug) - (a.raw - a.sug)).forEach(x => { if (resto > 0 && (x.raw > 0 || sv === 0)) { x.sug++; resto--; } });
+  if (resto > 0 && it.length) it[0].sug += resto;
+  const sq = it.reduce((t, x) => t + x.qb, 0);
+  it.forEach(x => { x.pctSug = Q ? x.sug / Q : null; x.cobSug = x.v > 0 ? (x.ec + x.sug) / x.v : null;
+    x.part = sq > 0 ? Math.round(Q * x.qb / sq) : 0; x.cobPart = x.v > 0 ? (x.ec + x.part) / x.v : null;
+    x.precisa = Math.max(0, x.v * (R.cob + R.seg) - x.ec); });
+  return {it, T};
+}
+
+/* ---------- render ---------- */
+function viewModelo(v) {
+  if (!MC.d) MC.d = mcPadrao();
+  MC.host = div(v, 'mc');
+  mcBind(MC.host);
+  mcRender();
+  if (MC.lista === null) mcCarregarLista();
+  if (!MC.cot && !MC.cotErro) mcCotacao();
+  mcGarantir();
+}
+function mcRender() {
+  const host = MC.host; if (!host || !host.isConnected) return;
+  const d = MC.d, sy = window.scrollY;
+  const R = mcCalc(d, MC.cen);
+  const RS = Object.fromEntries(MC_CEN.map(([k]) => [k, k === MC.cen ? R : mcCalc(d, k)]));
+  host.innerHTML = mcTopo() + mcP1(d, R) + mcP2(d, R, RS) + mcP3(d, R) + mcP4(d, R) + mcP5(d, R) + mcP6(d, R) + mcResultado(d, R, RS);
+  window.scrollTo(0, sy);
+}
+function mcTopo() {
+  const l = MC.lista;
+  return `<div class="card mc-topo">
+    <div class="mc-topo-l"><span class="flabel">Simulação</span>
+      <div class="chips">${l === null ? '<span class="cell-nm">carregando…</span>' : l.length ? l.map(s => `<button class="chip ${s.id === MC.id ? 'on' : ''}" data-a="abrir" data-v="${s.id}" title="atualizada em ${fDate(String(s.atualizado_em || '').slice(0,10))}">${esc(s.nome)}</button>`).join('') : '<span class="cell-nm">nenhuma salva ainda</span>'}</div></div>
+    <div class="mc-topo-r">
+      <input class="input" style="max-width:280px" data-nome placeholder="Nome da simulação" value="${esc(MC.nome)}">
+      <button class="btn sec sm" data-a="nova">Nova</button>
+      <button class="btn sm" data-a="salvar">Salvar</button>
+      <button class="btn sec sm" data-a="salvar-nova">Salvar como nova</button>
+      ${MC.id ? `<button class="btn sec sm mc-del" data-a="excluir">${MC.confExcl ? 'Clique de novo para excluir' : 'Excluir'}</button>` : ''}
+      ${MC.dirty ? '<span class="mc-dirty">● alterações não salvas</span>' : ''}
+      <span style="margin-left:auto"></span><button class="btn sec sm" data-a="tog-todos" data-v="abrir">Abrir todas as seções</button><button class="btn sec sm" data-a="tog-todos" data-v="fechar">Fechar todas</button>
+      ${MC.msg ? `<span class="mc-msg ${MC.msgErro ? 'neg-txt' : ''}">${esc(MC.msg)}</span>` : ''}
+    </div>
+    <div class="foot-note" style="margin-top:12px">Preencha os passos de cima para baixo. Em cada passo, o quadro da direita mostra a conta feita com o que você preencheu. Campos vazios usam o valor calculado, que aparece em cinza.</div>
+  </div>`;
+}
+const mcStep = (num, titulo, esq, dir, resumo) => `<div class="card mc-step ${MC.fechados.has('p' + num) ? 'fechado' : ''}">${mcHead('p' + num, titulo, resumo, num)}<div class="mc-body"><div class="mc-l">${esq}</div><div class="mc-r"><h4>O que isso dá</h4>${dir}</div></div></div>`;
+function mcTags(lista, key) {
+  return `<div class="mc-tags">${lista.map(s => `<span class="mc-tag">${esc(MC.nomes.get(s) || s)} <small>${esc(s)}</small><button type="button" data-a="rm-sku" data-l="${key}" data-v="${esc(s)}" title="Tirar">×</button></span>`).join('')}</div>
+    <div class="mc-busca" data-l="${key}"><input class="input" data-bq placeholder="Busque por SKU ou nome (mín. 2 letras)" autocomplete="off"><div class="mc-drop" hidden></div></div>`;
+}
+function mcP1(d, R) {
+  const esq = `<div class="mc-fields">
+    <label class="field mc-fd"><span>Tipo de compra${mcQ('tipo')}</span><select class="input" data-k="tipo" data-t="sel">${Object.entries(MC_TIPOS).map(([k, t]) => `<option value="${k}" ${d.tipo === k ? 'selected' : ''}>${t.label}</option>`).join('')}</select></label>
+    ${mcFld('quantidade', 'Quantidade (un.)', {int:true, ph:'ex.: 6000'})}
+    <label class="field mc-fd mc-chk"><span>&nbsp;</span><label class="toggle"><input type="checkbox" data-k="lancamento" data-t="bool" ${d.lancamento ? 'checked' : ''}> É lançamento?${mcQ('lancamento')}</label></label>
+  </div>
+  ${d.lancamento ? `<div class="mc-fields">
+      ${mcFld('nome_lanc', 'Nome do lançamento', {t:'txt'})}
+      ${mcFld('preco_capa_lanc', 'Preço de capa (R$)', {ph:'R$'})}
+      ${mcFld('fator_lanc', 'Lançamento vende quanto de um similar (%)', {pct:true, ph:'100'})}
+    </div>
+    <div class="field"><span>SKUs similares${mcQ('similares')}</span>${mcTags(d.similares, 'similares')}</div>`
+  : `<div class="field"><span>SKUs do pedido${mcQ('skus')}</span>${mcTags(d.skus, 'skus')}</div>`}`;
+  let dir = '';
+  if (MC.carregando) dir += '<div class="cell-nm">Buscando dados dos SKUs…</div>';
+  if (!R.refs.length) dir += `<div class="cell-nm">Escolha ${d.lancamento ? 'os SKUs similares' : 'os SKUs do pedido'} para ver vendas, estoque e custo.</div>`;
+  if (d.lancamento && (d.nome_lanc || R.precoCapa)) dir += mcLn(esc(d.nome_lanc || 'Lançamento'), fBRL(R.precoCapa), 'preço de capa previsto · estoque inicial = 0');
+  R.refs.forEach(r => {
+    const ent = (r.entradas || []).slice(0,3).map(e => `${fDate(e.data)} (${fInt(e.quantidade)} un.)`).join(' · ');
+    dir += `<div class="mc-ref"><div class="mc-ref-h"><b>${esc(r.nome)}</b> <span class="cell-nm">${esc(r.sku)}</span> ${r.curva ? badgeCurva(r.curva) : ''}</div>
+      <div class="kv" style="margin-top:6px"><span>Preço de capa</span><span>${fBRL(r.preco_capa)}</span><span>Último custo</span><span>${fBRL(r.custo_atual)}</span>
+      <span>Estoque no site</span><span>${fInt(r.estoque_site)}</span><span>Fulfillment</span><span>${fInt(r.estoque_fulfillment)}</span></div>
+      <div class="ct">Últimas entradas de compra: ${ent || 'nenhuma'}</div></div>`;
+  });
+  if (R.refs.some(r => r.curva === 'A')) dir += mcNota('Curva A: regra é não deixar faltar.', 'alerta');
+  if (R.refs.length > 1) dir += mcNota(d.lancamento ? `${R.refs.length} similares: giro, preço médio e custo pela média deles.` : `${R.refs.length} SKUs: vendas e estoque somados; preço de capa e custo pela média.`);
+  return mcStep(1, 'O que vamos <em>comprar</em>', esq, dir, `${MC_TIPOS[d.tipo].label} · ${R.Q ? fN(R.Q) + ' un.' : 'sem quantidade'} · ${d.lancamento ? esc(d.nome_lanc || 'lançamento') + ' (' + R.refs.length + ' similares)' : R.refs.length + (R.refs.length === 1 ? ' SKU' : ' SKUs')}`);
+}
+function mcP2(d, R, RS) {
+  const opMes = []; for (let i = 36; i >= 1; i--) opMes.push(mcAddMes(mcMesAtual, -i));
+  const opFut = []; for (let i = 0; i < 30; i++) opFut.push(mcAddMes(mcMesAtual, i));
+  const esq = `${mcSeg('giro', [['12','12 meses'],['9','9 meses'],['6','6 meses'],['custom','Escolher período']], d.giro, 'Período-base')}
+    ${d.giro === 'custom' ? `<div class="mc-fields">${['giro_ini','giro_fim'].map((k, i) => `<label class="field mc-fd"><span>${i ? 'Até' : 'De'}</span><select class="input" data-k="${k}" data-t="sel"><option value="">—</option>${opMes.map(m => `<option value="${m}" ${d[k] === m ? 'selected' : ''}>${mcMesLbl(m)}</option>`).join('')}</select></label>`).join('')}</div>` : ''}
+    <label class="toggle" style="margin:2px 0 14px"><input type="checkbox" data-k="sazonal" data-t="bool" ${d.sazonal ? 'checked' : ''}> Repetir a sazonalidade do período-base${mcQ('sazonal')}</label>
+    <div class="mc-fields">
+      ${mcFld('cen.pess', 'Pessimista (%)', {pct:true, h:'cen'})}${mcFld('cen.real', 'Realista (%)', {pct:true, h:'cen'})}${mcFld('cen.otim', 'Otimista (%)', {pct:true, h:'cen'})}
+      ${mcFld('media_manual', 'Venda média por mês (un.)', {ph:fN(R.mediaCalc, 1)})}
+    </div>
+    <div class="field"><span>Campanhas e picos previstos${mcQ('campanhas')}</span>
+      ${(d.campanhas || []).map((c, i) => `<div class="mc-linha"><select class="input" data-k="campanhas.${i}.mes" data-t="sel" style="width:130px">${opFut.map(m => `<option value="${m}" ${c.mes === m ? 'selected' : ''}>${mcMesLbl(m)}</option>`).join('')}</select>
+        <input class="input" style="width:90px" data-k="campanhas.${i}.extra" data-t="num" data-pct="1" value="${esc(mcIn(c.extra, true))}" placeholder="50"><span class="cell-nm">% extra</span>
+        <button type="button" class="mc-rm" data-a="rm" data-l="campanhas" data-v="${i}" title="Tirar">${svg(MC_ICO.lixo)}</button></div>`).join('')}
+      <button type="button" class="btn sec sm" data-a="add-camp">+ campanha</button></div>
+    ${mcSeg('preco_venda_tipo', [['capa', `Preço de capa (${fBRL(R.precoCapa)})`], ['medio', `Preço médio do período (${fBRL(R.precoMedio)})`], ['manual', 'Preencher']], d.preco_venda_tipo || 'medio', 'Preço de venda', 'preco')}
+    ${d.preco_venda_tipo === 'manual' ? `<div class="mc-fields">${mcFld('preco_medio_manual', 'Preço de venda (R$)', {ph:'R$', h:'preco'})}</div>` : ''}`;
+  const per = R.nMeses ? `${mcMesLbl(R.meses[0])} a ${mcMesLbl(R.meses[R.nMeses - 1])}` : '—';
+  let dir = mcLn('Vendas no período-base', fUn(R.vendasBase), `Σ unidades de ${per} (${R.nMeses} meses)${d.lancamento ? ` · média entre ${R.refs.length} ${R.refs.length === 1 ? 'similar' : 'similares'}` : ''}`);
+  dir += mcLn('Venda média por mês', fN(R.media, 1) + ' un.', n(d.media_manual) !== null ? `preenchida (calculada seria ${fN(R.mediaCalc, 1)} un.)`
+    : `${fN(R.vendasBase)} ÷ ${R.nMeses} meses${d.lancamento ? ` × ${fPct(R.fator * 100, 0)}` : ''} = ${fN(R.mediaCalc, 1)} un./mês`);
+  MC_CEN.forEach(([k, l]) => { const r = RS[k]; dir += mcLn(`Projeção ${l.toLowerCase()}`, fN(r.vendaMes, 1) + ' un./mês', `${fN(r.media, 1)} × (1 ${r.cenPct < 0 ? '−' : '+'} ${fPct(Math.abs(r.cenPct) * 100, 0)}) = ${fN(r.vendaMes, 1)}`, k === MC.cen ? 'mc-sel' : ''); });
+  dir += mcLn('Preço médio do período', fBRL(R.precoMedio), R.precoMedio ? `${fBRL(R.flBase)} faturamento líquido ÷ ${fN(R.vendasBase)} un.${R.precoCapa ? ` · ${fPct((1 - R.precoMedio / R.precoCapa) * 100)} abaixo da capa (${fBRL(R.precoCapa)})` : ''}` : 'sem vendas no período');
+  dir += mcLn('Preço de venda usado', fBRL(R.preco), d.preco_venda_tipo === 'capa' ? 'preço de capa' : d.preco_venda_tipo === 'manual' ? 'preço digitado' : 'preço médio do período');
+  dir += mcLn('Picos', R.picos.length ? R.picos.length + ' meses' : 'nenhum', R.picos.length ? `${R.picos.map(s => `${mcMesLbl(s.mes)} (${fN(s.q)} un.)`).join(' · ')} · meses com venda ≥ 1,5 × a mediana (${fN(R.mediana)} un.)` : `nenhum mês com venda ≥ 1,5 × a mediana (${fN(R.mediana)} un.)`);
+  dir += mcLn('Sazonalidade', R.usaSaz ? 'ligada' : 'desligada', R.usaSaz ? 'cada mês futuro = média daquele mês do calendário na base × (1 + cenário)' : d.sazonal ? 'precisa de 12+ meses de base: todo mês usa a média' : 'todo mês usa a média');
+  if ((d.campanhas || []).length) dir += mcLn('Campanhas', (d.campanhas || []).length + '', (d.campanhas || []).filter(c => c.mes).map(c => `${mcMesLbl(c.mes)}: × (1 + ${fPct((n(c.extra) ?? .5) * 100, 0)})`).join(' · '));
+  const mx = Math.max(1, ...R.serie.map(s => s.q));
+  if (R.serie.length) dir += `<div class="mc-bars">${R.serie.map(s => `<div class="mc-bar" title="${mcMesLbl(s.mes)}: ${fN(s.q)} un."><i style="height:${Math.max(2, s.q / mx * 100)}%;background:${s.pico ? COR.marrom : COR.bege}"></i><span>${MC_MES[+s.mes.slice(5,7) - 1].slice(0,1)}</span></div>`).join('')}</div><div class="ct" style="margin-top:4px">vendas mês a mês da base · picos em marrom</div>`;
+  return mcStep(2, 'Quanto <em>vende</em> (giro)', esq, dir, `${fN(R.vendaMes, 1)} un./mês no cenário ${MC_CEN.find(c => c[0] === MC.cen)[1].toLowerCase()} · preço ${fBRL(R.preco)}`);
+}
+function mcP3(d, R) {
+  const imp = d.tipo === 'importacao';
+  const lp = d.tipo === 'impressao' ? 'Impressão (dias)' : d.tipo === 'compra' ? 'Separação no fornecedor (dias)' : 'Produção (dias)';
+  const T = MC_TIPOS[d.tipo];
+  const esq = `<div class="mc-fields">
+    ${mcFld('data_pedido', 'Data do pedido', {t:'date'})}
+    ${mcFld('chegada_manual', 'Chegada (opcional)', {t:'date'})}
+    ${mcFld('d_producao', lp, {int:true, ph:String(T.prazos[0])})}
+    ${mcFld('d_transito', imp ? 'Trânsito marítimo (dias)' : 'Entrega (dias)', {int:true, ph:String(T.prazos[1])})}
+    ${imp ? mcFld('d_desembaraco', 'Desembaraço e nacionalização (dias)', {int:true, ph:String(T.prazos[2])}) : ''}
+  </div>
+  <div class="field"><span>Feriados e paradas na produção${mcQ('feriados')}</span>
+    ${(d.feriados || []).map((f, i) => `<div class="mc-linha"><input class="input" data-k="feriados.${i}.nome" data-t="txt" value="${esc(f.nome)}" placeholder="Nome" style="flex:2;min-width:160px">
+      <input class="input" type="date" data-k="feriados.${i}.inicio" data-t="date" value="${esc(f.inicio || '')}" style="width:150px">
+      <input class="input" type="date" data-k="feriados.${i}.fim" data-t="date" value="${esc(f.fim || '')}" style="width:150px">
+      <button type="button" class="mc-rm" data-a="rm" data-l="feriados" data-v="${i}" title="Tirar">${svg(MC_ICO.lixo)}</button></div>`).join('')}
+    <div class="mc-linha"><select class="input" data-sug style="width:auto"><option value="">+ adicionar feriado sugerido…</option>${MC_FER.map((f, i) => `<option value="${i}">${esc(f.nome)} (${fDate(f.inicio)} a ${fDate(f.fim)})</option>`).join('')}</select>
+      <button type="button" class="btn sec sm" data-a="add-fer">+ outro</button></div></div>`;
+  let dir = mcLn('Pedido', fDate(R.pedido));
+  dir += mcLn('Fim da produção', fDate(R.fimProd), `${fDate(R.pedido)} + ${fInt(R.prod)} dias${R.parados ? ` + ${fInt(R.parados)} dias parados` : ''}`);
+  dir += mcLn('Chegada', fDate(R.chegada), d.chegada_manual ? `preenchida (pelos prazos seria ${fDate(R.chegadaCalc)})` : `${fDate(R.fimProd)} + ${fInt(R.trans)} dias de ${imp ? 'trânsito' : 'entrega'}${imp ? ` + ${fInt(R.desemb)} de desembaraço` : ''}`);
+  dir += mcLn('Prazo total', fInt(R.prazoTotal) + ' dias', d.chegada_manual ? 'do pedido à chegada informada' : `${fInt(R.prod)} + ${fInt(R.parados)} parados + ${fInt(R.trans)}${imp ? ' + ' + fInt(R.desemb) : ''}`);
+  dir += R.impactos.length ? R.impactos.map(x => mcNota(`${esc(x.nome)} cai durante a produção: +${fInt(x.dias)} dias.`, 'alerta')).join('') : mcNota('Nenhum feriado da lista cai durante a produção.');
+  return mcStep(3, 'Quando <em>chega</em> (prazos)', esq, dir, `chega em ${fDate(R.chegada)} · ${fInt(R.prazoTotal)} dias${R.parados ? ` (${fInt(R.parados)} parados)` : ''}`);
+}
+function mcP4(d, R) {
+  let esq, dir;
+  const Q = R.Q, qtxt = Q ? fN(Q) + ' un.' : 'Q';
+  if (R.imp) {
+    esq = `<div class="mc-fields">
+      ${mcFld('cambio', 'Câmbio (R$ por US$)', {ph:R.cotacao ? fN(R.cotacao, 4) : 'digite o câmbio'})}
+      ${mcFld('fob_usd', 'Preço FOB por unidade (US$)', {ph:'US$'})}
+      ${mcFld('frete_usd', 'Frete internacional total (US$)', {ph:'US$'})}
+      ${mcFld('despesas_brl', 'Despesas no Brasil total (R$)', {ph:'R$'})}
+      ${mcFld('siscomex', 'Siscomex por DI (R$)', {ph:fN(MC_IMP.siscomex, 2)})}
+    </div>
+    <div class="cell-nm" style="margin:-6px 0 12px">${MC.cot ? `Hoje: R$ ${fN(MC.cot.bid, 4)} (AwesomeAPI, ${fDate(MC.cot.data)})` : MC.cotErro ? '<span class="neg-txt">Não consegui buscar a cotação de hoje: digite o valor.</span>' : 'buscando a cotação de hoje…'}</div>
+    ${mcSeg('impostos', [['normal','Pelo NCM'],['livro','Isenção (livro)']], d.impostos, 'Impostos')}
+    ${d.impostos !== 'livro' ? `<div class="mc-sub"><div class="cell-nm" style="margin-bottom:8px">Padrões = alíquotas da última DI do Baby Journal.</div><div class="mc-fields">
+      ${mcFld('ncm', 'NCM', {t:'txt', ph:MC_IMP.ncm})}
+      ${[['ii','II'],['ipi','IPI'],['pis','PIS'],['cofins','COFINS'],['icms','ICMS'],['afrmm','AFRMM']].map(([k, l]) => mcFld(k, l + ' (%)', {pct:true, ph:mcIn(MC_IMP[k], true)})).join('')}
+    </div></div>` : `<div class="mc-fields">${mcFld('afrmm', 'AFRMM (%)', {pct:true, ph:mcIn(MC_IMP.afrmm, true)})}</div>`}`;
+    const u = R.u, c = R.cambio, cf = fN(c, 4), pc = k => fPct(R.p[k] * 100, 2);
+    dir = !c ? mcNota('Informe o câmbio para calcular o custo.', 'alerta') : '';
+    dir += mcLn('FOB', fBRL(u.fob), `US$ ${fN(d.fob_usd, 2)} × R$ ${cf}`);
+    dir += mcLn('Frete', fBRL(u.frete), `US$ ${fN(d.frete_usd || 0, 2)} × R$ ${cf} ÷ ${qtxt}`);
+    dir += mcLn('Valor aduaneiro (VA)', fBRL(u.va), `${fBRL(u.fob)} + ${fBRL(u.frete)}`);
+    dir += mcLn('II', fBRL(u.ii), `${fBRL(u.va)} × ${pc('ii')}`);
+    dir += mcLn('IPI', fBRL(u.ipi), `(${fBRL(u.va)} + ${fBRL(u.ii)}) × ${pc('ipi')} · gera crédito`);
+    dir += mcLn('PIS', fBRL(u.pis), `${fBRL(u.va)} × ${pc('pis')}`);
+    dir += mcLn('COFINS', fBRL(u.cofins), `${fBRL(u.va)} × ${pc('cofins')}`);
+    dir += mcLn('ICMS (por dentro)', fBRL(u.icms), `(${fBRL(u.va + u.ii + u.ipi + u.pis + u.cofins)}) × ${pc('icms')} ÷ (1 − ${pc('icms')}) · gera crédito`);
+    dir += mcLn('AFRMM', fBRL(u.afrmm), `${fBRL(u.frete)} × ${pc('afrmm')}`);
+    dir += mcLn('Siscomex', fBRL(u.sis), `${fBRL(R.siscomex)} ÷ ${qtxt}`);
+    dir += mcLn('Despesas no Brasil', fBRL(u.desp), `${fBRL(n(d.despesas_brl) || 0)} ÷ ${qtxt}`);
+    dir += mcLn('Custo por unidade', fBRL(R.custoUn), 'soma de tudo acima', 'mc-tot');
+    dir += mcLn('Crédito a recuperar (IPI + ICMS)', fBRL(R.credito), `custo líquido = ${fBRL(R.custoUn)} − ${fBRL(R.credito)} = ${fBRL(R.custoUn - R.credito)} por unidade`);
+  } else {
+    const lbl = d.lancamento ? 'média do custo dos similares' : d.tipo === 'compra' ? `último custo ${fBRL(R.custoRef)} × (1 + ${fPct((n(d.acrescimo) ?? .03) * 100, 1)})` : 'último custo do cadastro';
+    esq = `<div class="mc-fields">
+      ${mcFld('custo_unit', 'Custo por unidade (R$)', {ph:R.custoPadrao !== null ? fN(R.custoPadrao, 2) : 'R$'})}
+      ${d.tipo === 'compra' ? mcFld('acrescimo', 'Acréscimo sobre o último custo (%)', {pct:true, ph:'3'}) : ''}
+      ${mcFld('frete_brl', 'Frete total (R$)', {ph:'R$'})}
+      ${mcFld('outros_brl', 'Outros custos totais (R$)', {ph:'R$'})}
+    </div>`;
+    dir = mcLn('Custo do produto', fBRL(R.custoProd), n(d.custo_unit) !== null ? `preenchido (padrão seria ${fBRL(R.custoPadrao)})` : lbl + (R.custoPadrao !== null && d.tipo === 'compra' && !d.lancamento ? ` = ${fBRL(R.custoPadrao)}` : ''));
+    dir += mcLn('Frete por unidade', fBRL(R.freteU), `${fBRL(n(d.frete_brl) || 0)} ÷ ${qtxt}`);
+    dir += mcLn('Outros por unidade', fBRL(R.outrosU), `${fBRL(n(d.outros_brl) || 0)} ÷ ${qtxt}`);
+    dir += mcLn('Custo por unidade', fBRL(R.custoUn), `${fBRL(R.custoProd)} + ${fBRL(R.freteU)} + ${fBRL(R.outrosU)}`, 'mc-tot');
+  }
+  dir += mcLn('Total do pedido', fBRL(R.totalPedido), `${qtxt} × ${fBRL(R.custoUn)}`, 'mc-tot');
+  if (!Q) dir += mcNota('Preencha a quantidade no passo 1.', 'alerta');
+  return mcStep(4, 'Quanto <em>custa</em> cada unidade', esq, dir, `${fBRL(R.custoUn)} por unidade · total ${fBRL(R.totalPedido)}`);
+}
+function mcP5(d, R) {
+  const esq = `<div class="field"><span>Parcelas ao fornecedor (sobre o valor do produto${R.imp ? ' — FOB' : ''})${mcQ('parcelas')}</span>
+    ${(d.parcelas || []).map((p, i) => `<div class="mc-linha"><input class="input" data-k="parcelas.${i}.rotulo" data-t="txt" value="${esc(p.rotulo || '')}" placeholder="Rótulo" style="flex:2;min-width:150px">
+      <input class="input" data-k="parcelas.${i}.pct" data-t="num" data-pct="1" value="${esc(mcIn(p.pct, true))}" placeholder="%" style="width:70px"><span class="cell-nm">%</span>
+      <select class="input" data-k="parcelas.${i}.base" data-t="sel" style="width:150px">${Object.entries(MC_BASE).map(([k, l]) => `<option value="${k}" ${p.base === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      <span class="cell-nm">+</span><input class="input" data-k="parcelas.${i}.dias" data-t="num" data-int="1" value="${esc(mcIn(p.dias))}" placeholder="0" style="width:64px"><span class="cell-nm">dias</span>
+      <button type="button" class="mc-rm" data-a="rm" data-l="parcelas" data-v="${i}" title="Tirar">${svg(MC_ICO.lixo)}</button></div>`).join('')}
+    <button type="button" class="btn sec sm" data-a="add-parc">+ parcela</button></div>
+    <div class="foot-note">Lançados automaticamente: ${R.imp ? 'frete internacional no fim da produção (embarque); impostos, despesas e Siscomex na chegada.' : 'frete e outros custos na chegada.'}</div>`;
+  let dir = R.pagtos.length ? R.pagtos.map(p => mcLn(`${fDate(p.data)} · ${esc(p.rot)}`, fBRL(p.valor), p.conta)).join('') : '<div class="cell-nm">Nenhuma saída de caixa ainda.</div>';
+  dir += mcLn('Total que sai do caixa', fBRL(R.totalSai), R.imp ? `FOB ${fBRL(R.baseProd)} + frete + impostos e despesas` : `produto ${fBRL(R.baseProd)} + frete e outros`, 'mc-tot');
+  if (Math.abs(R.somaPct - 1) > .0005) dir += mcNota(`As parcelas somam ${fPct(R.somaPct * 100, 1)}, não 100%.`, 'erro');
+  return mcStep(5, 'Como <em>pagamos</em>', esq, dir, `${R.pagtos.length} saídas · ${fBRL(R.totalSai)}${Math.abs(R.somaPct - 1) > .0005 ? ` · <span class="neg-txt">parcelas somam ${fPct(R.somaPct * 100, 0)}</span>` : ''}`);
+}
+function mcP6(d, R) {
+  const curvaA = R.refs.some(r => r.curva === 'A');
+  const esq = `<div class="mc-fields">
+    ${mcFld('estoque_manual', 'Estoque hoje (un.)', {int:true, ph:fN(R.E0calc)})}
+    ${mcFld('cobertura_alvo', 'Cobertura desejada (meses)', {ph:'12'})}
+    ${mcFld('seguranca', 'Estoque de segurança (meses)', {ph:'1'})}
+  </div>${curvaA ? '<div class="cell-nm">Curva A: pelo menos 1 mês de segurança.</div>' : ''}
+  <div class="foot-note">Simulação de 30 meses a partir de ${mcMesLbl(mcMesAtual)} (mês atual proporcional aos dias que faltam). Vende primeiro o estoque antigo, depois o do pedido; o pedido entra na data de chegada. O que não tem estoque é ruptura.</div>`;
+  const cen = MC_CEN.find(c => c[0] === MC.cen)[1].toLowerCase();
+  let dir = `<div class="cell-nm" style="margin-bottom:6px">Cenário ${cen} · ${fN(R.vendaMes, 1)} un./mês</div>`;
+  dir += mcLn('Estoque atual acaba em', R.E0 <= 0 ? 'já acabou' : R.oldEnd ? fDate(R.oldEnd) : 'depois de 30 meses', `${fN(R.E0)} un. hoje${n(d.estoque_manual) !== null ? ' (preenchido)' : d.lancamento ? ' (lançamento)' : ' no site'} consumidas pela demanda mês a mês`);
+  dir += mcLn('Falta até o pedido chegar', fUn(R.faltaAntes) + (R.faltaAntes > 0 && R.preco ? ` ≈ ${fBRLk(R.faltaAntes * R.preco)}` : ''), R.faltaAntes > 0 ? `demanda sem estoque entre ${fDate(R.oldEnd)} e ${fDate(R.chegada)} · × ${fBRL(R.preco)}` : 'o estoque atual aguenta até a chegada', R.faltaAntes > 0.5 ? 'mc-neg' : '');
+  dir += mcLn('Estoque quando o pedido chega', fUn(R.estNaChegada), `sobra do estoque atual em ${fDate(R.chegada)}`);
+  dir += mcLn(`${fN(R.Q)} un. cobrem`, R.cobreMeses !== null ? fN(R.cobreMeses, 1) + ' meses' : '—', `${fN(R.Q)} ÷ ${fN(R.vendaMes, 1)} un./mês`);
+  dir += mcLn('O pedido acaba em', R.pedEnd ? mcMesLbl(R.pedEnd.slice(0,7)) + ` (≈ ${fDate(R.pedEnd)})` : R.Q ? 'depois de 30 meses' : '—', 'considerando sazonalidade e campanhas');
+  dir += mcLn('Próximo pedido precisa sair até', R.proxPedido ? fDate(R.proxPedido) : '—', R.proxPedido ? `15/${R.pedEnd.slice(5,7)}/${R.pedEnd.slice(0,4)} − ${fInt(R.prazoTotal)} dias de prazo − ${fN(R.seg, 1)} × 30,4 dias de segurança` : '', R.proxPedido && R.proxPedido < hoje ? 'mc-neg' : '');
+  const dif = R.Q - R.qtdN;
+  dir += mcLn(`Quantidade para cobrir ${fN(R.cob, 0)} meses`, fUn(R.qtdN), `demanda de ${fDate(R.chegada)} a ${fDate(R.fimN)} ${fN(R.demN)} + segurança ${fN(R.seg, 1)} × ${fN(R.vendaMes, 1)} = ${fN(R.segUn)} − estoque na chegada ${fN(R.estNaChegada)}${R.Q ? ` · você está simulando ${fN(Math.abs(dif))} ${dif >= 0 ? 'a mais' : 'a menos'} que isso` : ''}`, 'mc-tot');
+  return mcStep(6, 'Estoque: até quando <em>dura</em>', esq, dir, `cobre ${R.cobreMeses !== null ? fN(R.cobreMeses, 1) : '—'} meses · ${R.faltaAntes > .5 ? `<span class="neg-txt">falta ${fN(R.faltaAntes)} un. até chegar</span>` : 'sem falta até chegar'} · próximo pedido até ${R.proxPedido ? fDate(R.proxPedido) : '—'}`);
+}
+function mcResultado(d, R, RS) {
+  const linhas = [
+    ['Venda projetada por mês', r => fN(r.vendaMes, 1) + ' un.'],
+    ['Falta até a chegada', r => `<span class="${r.faltaAntes > .5 ? 'neg-txt' : ''}">${fUn(r.faltaAntes)}</span>`],
+    [`${fN(R.Q)} un. cobrem`, r => r.cobreMeses !== null ? fN(r.cobreMeses, 1) + ' meses' : '—'],
+    ['O pedido acaba em', r => r.pedEnd ? mcMesLbl(r.pedEnd.slice(0,7)) : r.Q ? '+30 meses' : '—'],
+    ['Próximo pedido até', r => r.proxPedido ? `<span class="${r.proxPedido < hoje ? 'neg-txt' : ''}">${fDate(r.proxPedido)}</span>` : '—'],
+    [`Quantidade para ${fN(R.cob, 0)} meses`, r => fUn(r.qtdN)],
+    ['Receita do pedido', r => fBRL(r.receita)],
+    ['Custo do pedido', r => fBRL(r.totalPedido)],
+    ['Margem bruta (R$)', r => `<span class="${r.margem < 0 ? 'neg-txt' : ''}">${fBRL(r.margem)}</span>`],
+    ['<b>Margem bruta (%)</b>', r => `<b class="${r.margemPct < 0 ? 'neg-txt' : ''}">${r.margemPct === null ? '—' : fPct(r.margemPct * 100)}</b>`],
+    ['Caixa se paga em', r => r.pagaEm ? mcMesLbl(r.pagaEm) : '—'],
+  ];
+  let h = `<div class="mc-res-h"><h2>Resultado</h2><div class="seg">${MC_CEN.map(([k, l]) => `<button type="button" class="${MC.cen === k ? 'on' : ''}" data-a="cen" data-v="${k}">${l}</button>`).join('')}</div></div>`;
+  h += `${mcAbre('r1', 'Os três cenários <em>lado a lado</em>', `margem bruta ${R.margemPct === null ? '—' : fPct(R.margemPct * 100)} · pedido acaba em ${R.pedEnd ? mcMesLbl(R.pedEnd.slice(0,7)) : '—'} (${MC_CEN.find(c => c[0] === MC.cen)[1].toLowerCase()})`)}<div class="hint">cenário selecionado em destaque</div>
+    <div class="tscroll" style="max-height:none"><table class="t mc-tc"><thead><tr><th></th>${MC_CEN.map(([k, l]) => `<th class="num ${k === MC.cen ? 'hl' : ''}">${l}<br><small>${fPct(RS[k].cenPct * 100, 0)}</small></th>`).join('')}</tr></thead>
+    <tbody>${linhas.map(([l, f]) => `<tr><td>${l}</td>${MC_CEN.map(([k]) => `<td class="num ${k === MC.cen ? 'hl' : ''}">${f(RS[k])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <div class="foot-note">Margem antes de frete de venda, taxas e royalties. Receita, custo e margem não mudam entre cenários: o que muda é o tempo para vender.</div></div></div>`;
+  if (!d.lancamento && d.skus.length > 1 && R.refs.length > 1) h += mcCardDivisao(d, R);
+  h += mcCardMes(R);
+  return h;
+}
+function mcCardDivisao(d, R) {
+  const {it, T} = mcDivisao(d, R);
+  const tot = k => it.reduce((s, x) => s + (x[k] || 0), 0);
+  const rows = it.map(x => `<tr><td class="wide"><div style="font-size:13px">${esc(x.nome)}</div><div class="cell-nm">${esc(x.sku)} ${x.curva ? badgeCurva(x.curva) : ''}</div></td>
+    <td class="num">${fN(x.v, 1)}</td><td class="num">${fInt(x.e)}</td>
+    <td class="num"><span class="${x.acaba && x.acaba < R.chegada ? 'neg-txt' : ''}">${x.acaba ? fDate(x.acaba) : '—'}</span></td>
+    <td class="num"><span class="${x.falta > .5 ? 'neg-txt' : ''}">${fInt(x.falta)}</span></td><td class="num">${fInt(x.ec)}</td>
+    <td class="num hl">${fInt(x.sug)}<div class="cell-nm">${fPct((x.pctSug || 0) * 100, 0)}</div></td><td class="num hl">${x.cobSug !== null ? fN(x.cobSug, 1) + ' m' : '—'}</td>
+    <td class="num">${fInt(x.part)}</td><td class="num"><span class="${x.cobPart !== null && x.cobPart < T - 1 ? 'neg-txt' : ''}">${x.cobPart !== null ? fN(x.cobPart, 1) + ' m' : '—'}</span></td>
+    <td class="num">${fInt(x.precisa)}</td></tr>`).join('');
+  const sv = tot('v'), sec = tot('ec');
+  return `${mcAbre('r2', 'Divisão sugerida <em>por SKU</em>', R.Q && sv > 0 ? `cada SKU fica com ${fN(T, 1)} meses depois da chegada` : '')}
+    <div class="hint">${R.Q && sv > 0 ? `Com ${fN(R.Q)} un., cada SKU fica com ${fN(T, 1)} meses de estoque depois da chegada (${fDate(R.chegada)}). O SKU que vende mais ou chega com menos estoque recebe mais.` : 'Preencha a quantidade para ver a divisão.'}</div>
+    <div class="tscroll" style="max-height:none"><table class="t"><thead><tr><th>SKU</th><th class="num">Venda/<br>mês</th><th class="num">Estoque<br>hoje</th><th class="num">Acaba em</th><th class="num">Falta até<br>chegar</th><th class="num">Estoque na<br>chegada</th>
+      <th class="num hl">Qtd.<br>sugerida</th><th class="num hl">Cobertura</th><th class="num">Pela<br>participação</th><th class="num">Cobertura<br>dessa divisão</th><th class="num">Precisa p/<br>${fN(R.cob, 0)}+${fN(R.seg, 0)} meses</th></tr></thead>
+    <tbody>${rows}<tr class="tot"><td>Total</td><td class="num">${fN(sv, 1)}</td><td class="num">${fInt(tot('e'))}</td><td></td><td class="num">${fInt(tot('falta'))}</td><td class="num">${fInt(sec)}</td>
+      <td class="num">${fInt(tot('sug'))}</td><td class="num">${sv > 0 ? fN((sec + tot('sug')) / sv, 1) + ' m' : '—'}</td><td class="num">${fInt(tot('part'))}</td><td></td><td class="num">${fInt(tot('precisa'))}</td></tr></tbody></table></div>
+    <div class="foot-note">Venda/mês = vendas do SKU na base ÷ ${R.nMeses} meses × (1 ${R.cenPct < 0 ? '−' : '+'} ${fPct(Math.abs(R.cenPct) * 100, 0)}), sem sazonalidade. Estoque na chegada = estoque hoje − venda/mês × meses até a chegada. Qtd. sugerida = cobertura comum × venda/mês − estoque na chegada. "Pela participação" divide pelo peso de cada SKU nas vendas da base; em vermelho quando deixa o SKU mais de 1 mês abaixo da cobertura comum.</div></div></div>`;
+}
+function mcCardMes(R) {
+  const rows = R.rows.slice(0, R.ultimo + 1);
+  const cls = r => r.mes === R.kCheg ? 'mc-cheg' : '';
+  const L = (lbl, f, tot, fmt = fN) => `<tr><td class="mc-fix">${lbl}</td>${rows.map(r => `<td class="num ${cls(r)}">${f(r)}</td>`).join('')}<td class="num mc-totc">${tot}</td></tr>`;
+  const s = k => rows.reduce((t, r) => t + r[k], 0);
+  const last = rows[rows.length - 1] || {};
+  const din = v => Math.abs(v) < .5 ? '—' : fBRLk(v);
+  const bl = t => `<tr class="mc-blk"><td class="mc-fix">${t}</td>${rows.map(() => '<td></td>').join('')}<td></td></tr>`;
+  return `${mcAbre('r3', 'Mês a mês: <em>estoque e caixa</em>', `saldo no fim: ${din(last.saldo)} · ruptura total ${fN(s('falta'))} un.`, false)}<div class="hint">cenário ${MC_CEN.find(c => c[0] === MC.cen)[1].toLowerCase()} · coluna destacada = mês da chegada · mostra até 1 mês depois de o pedido acabar</div>
+    <div class="tscroll mc-mm"><table class="t"><thead><tr><th class="mc-fix"></th>${rows.map(r => `<th class="num ${cls(r)}">${mcMesLbl(r.mes)}${r.mes === R.kCheg ? '<div class="mc-tagm">chegada</div>' : ''}${R.usaSaz && R.picoMes.has(r.mes.slice(5,7)) ? '<div class="mc-tagm">pico</div>' : ''}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>
+    ${bl('Estoque (unidades)')}
+    ${L('Demanda', r => fN(r.dem), fN(s('dem')))}
+    ${L('Chega do pedido', r => r.chega ? fN(r.chega) : '—', fN(s('chega')))}
+    ${L('Vendido', r => fN(r.vend), fN(s('vend')))}
+    ${L('Falta (ruptura)', r => r.falta > .5 ? `<span class="neg-txt">${fN(r.falta)}</span>` : '—', s('falta') > .5 ? `<span class="neg-txt">${fN(s('falta'))}</span>` : '—')}
+    ${L('Estoque no fim do mês', r => fN(r.est), fN(last.est))}
+    ${bl('Caixa (R$)')}
+    ${L('Sai do caixa', r => din(r.sai), din(s('sai')))}
+    ${L('Entra (vendas deste pedido)', r => din(r.entra), din(s('entra')))}
+    ${L('Saldo acumulado', r => `<span class="${r.saldo < -.5 ? 'neg-txt' : r.saldo > .5 ? 'mc-pos' : ''}">${din(r.saldo)}</span>`, `<span class="${last.saldo < -.5 ? 'neg-txt' : 'mc-pos'}">${din(last.saldo)}</span>`)}
+    </tbody></table></div>
+    <div class="foot-note">Entra = unidades do pedido vendidas × ${fBRL(R.preco)}. Total = soma; em "Estoque no fim do mês" e "Saldo acumulado" o Total é o valor final.</div></div></div>`;
+}
+const MC_ICO = {lixo:'<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/>'};
+
+/* ---------- eventos ---------- */
+function mcMudou() { MC.dirty = true; MC.msg = ''; MC.confExcl = false; }
+function mcRerender() {
+  setTimeout(() => {
+    const a = document.activeElement, ak = a && a.dataset ? a.dataset.k : null;
+    mcRender();
+    if (ak && MC.host) { const nx = MC.host.querySelector(`[data-k="${CSS.escape(ak)}"]`); if (nx) nx.focus(); }
+  }, 0);
+}
+function mcBind(host) {
+  let tBusca;
+  host.addEventListener('mousedown', e => { MC.pendClick = !!e.target.closest('[data-a]'); });
+  host.addEventListener('change', e => {
+    const t = e.target;
+    if (t.dataset.sug !== undefined) { if (t.value !== '') { MC.d.feriados.push({...MC_FER[+t.value]}); mcMudou(); mcRerender(); } return; }
+    const k = t.dataset.k; if (!k) return;
+    let v;
+    if (t.dataset.t === 'bool') v = t.checked;
+    else if (t.dataset.t === 'num') { v = mcParse(t.value); if (v !== null && t.dataset.pct) v = v / 100; if (v !== null && t.dataset.int) v = Math.round(v); }
+    else if (t.dataset.t === 'date') v = t.value || null;
+    else v = t.value;
+    if (k === 'tipo') {
+      const T = MC_TIPOS[v]; Object.assign(MC.d, {tipo:v, d_producao:T.prazos[0], d_transito:T.prazos[1], d_desembaraco:T.prazos[2],
+        feriados:T.fer.map(i => ({...MC_FER[i]})), parcelas:T.parcelas.map(p => ({...p}))});
+    } else mcSet(k, v);
+    mcMudou();
+    if (MC.pendClick) MC.pendClick = false; else mcRerender();
+    if (k === 'lancamento') mcGarantir();
+  });
+  host.addEventListener('input', e => {
+    const t = e.target;
+    if (t.dataset.nome !== undefined) { MC.nome = t.value; return; }
+    if (t.dataset.bq === undefined) return;
+    const box = t.closest('.mc-busca'), drop = box.querySelector('.mc-drop'), q = t.value.trim();
+    clearTimeout(tBusca);
+    if (q.length < 2) { drop.hidden = true; return; }
+    tBusca = setTimeout(async () => {
+      const r = await sb.rpc('forecast_skus', {p_busca:q});
+      if (t.value.trim() !== q) return;
+      const lista = box.dataset.l, ja = new Set(MC.d[lista]);
+      const rows = (r.data || []).filter(x => !ja.has(x.sku));
+      rows.forEach(x => MC.nomes.set(x.sku, x.nome));
+      box._rows = rows;
+      drop.innerHTML = rows.length ? `<button type="button" data-a="add-todos"><b>+ Adicionar todos os ${rows.length} resultados</b></button>` +
+        rows.map(x => `<button type="button" data-a="add-sku" data-v="${esc(x.sku)}"><span>${esc(x.nome)}</span><small>${esc(x.sku)} · ${fInt(x.unidades_12m)} un. em 12m${x.status && !/^ativo/i.test(x.status) ? ' · ' + esc(x.status) : ''}</small></button>`).join('')
+        : '<div class="cell-nm" style="padding:8px">Nada encontrado.</div>';
+      drop.hidden = false;
+    }, 250);
+  });
+  host.addEventListener('click', e => {
+    if (!e.target.closest('.mc-busca')) host.querySelectorAll('.mc-drop').forEach(x => x.hidden = true);
+    MC.pendClick = false;
+    const b = e.target.closest('[data-a]'); if (!b) { return; }
+    const a = b.dataset.a, d = MC.d;
+    if (a === 'add-sku' || a === 'add-todos') {
+      const box = b.closest('.mc-busca'), lista = box.dataset.l;
+      const novos = a === 'add-todos' ? (box._rows || []).map(x => x.sku) : [b.dataset.v];
+      d[lista] = [...new Set([...d[lista], ...novos])];
+      mcMudou(); mcRender(); mcGarantir();
+      const inp = MC.host.querySelector(`.mc-busca[data-l="${lista}"] [data-bq]`); if (inp) inp.focus();
+      return;
+    }
+    if (a === 'rm-sku') { const l = b.dataset.l; d[l] = d[l].filter(s => s !== b.dataset.v); mcMudou(); mcRender(); return; }
+    if (a === 'rm') { d[b.dataset.l].splice(+b.dataset.v, 1); mcMudou(); mcRender(); return; }
+    if (a === 'set') { mcSet(b.dataset.k, b.dataset.v); mcMudou(); mcRender(); return; }
+    if (a === 'add-camp') { d.campanhas.push({mes:mcAddMes(mcMesAtual, 1), extra:.5}); mcMudou(); mcRender(); return; }
+    if (a === 'add-fer') { d.feriados.push({nome:'', inicio:'', fim:''}); mcMudou(); mcRender(); return; }
+    if (a === 'add-parc') { d.parcelas.push({rotulo:'Parcela', pct:0, base:'chegada', dias:0}); mcMudou(); mcRender(); return; }
+    if (a === 'cen') { MC.cen = b.dataset.v; mcRender(); return; }
+    if (a === 'tog') { const id = b.dataset.v; MC.fechados.has(id) ? MC.fechados.delete(id) : MC.fechados.add(id); mcSalvaFechados(); mcRender(); return; }
+    if (a === 'tog-todos') { MC.fechados = b.dataset.v === 'fechar' ? new Set(MC_SECOES) : new Set(); mcSalvaFechados(); mcRender(); return; }
+    if (a === 'nova') { MC.d = mcPadrao(); MC.id = null; MC.nome = ''; MC.dirty = false; MC.msg = ''; MC.confExcl = false; mcRender(); return; }
+    if (a === 'abrir') { mcAbrir(+b.dataset.v); return; }
+    if (a === 'salvar') { mcSalvar(false); return; }
+    if (a === 'salvar-nova') { mcSalvar(true); return; }
+    if (a === 'excluir') { mcExcluir(); return; }
+  });
+}
 
 </script>
 </body>
