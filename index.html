@@ -54,6 +54,7 @@ button{font-family:var(--ff-sans);cursor:pointer}
 .side-toggle:hover{background:rgba(255,254,243,.12);color:var(--pp-polen)}
 .side-toggle svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s ease}
 #app.collapsed .side{width:64px}
+#app.collapsed .wrap{max-width:none}
 #app.collapsed .side .logo,#app.collapsed .side .sect,#app.collapsed .side .nav .lbl-nav,#app.collapsed .side-foot .email{display:none}
 #app.collapsed .side-top{justify-content:center}
 #app.collapsed .side-toggle{margin:20px 0 14px}
@@ -172,7 +173,7 @@ table.t tr.tot td{font-weight:bold;background:var(--pp-polen-deep)}
 td.wide{min-width:230px}
 td.mid{min-width:150px}
 .cell-nm{font-size:12.5px;color:var(--text-soft);max-width:320px;line-height:1.35}
-.neg-txt{color:var(--erro)}
+.neg-txt{color:var(--erro)}.alerta-txt{color:#A0701C;font-weight:600}
 .pager{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;font-family:var(--ff-sans);font-size:12.5px;color:var(--text-soft)}
 .pager button{background:var(--pp-branco);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 10px;color:var(--text);font-size:12.5px}
 .pager button:disabled{opacity:.4;cursor:default}
@@ -472,7 +473,7 @@ function makeTable(host, cfg) {
     if (cfg.search) h += `<input class="input" style="max-width:260px" placeholder="Buscar SKU ou nome…" data-q>`;
     (cfg.pills||[]).forEach(p => {
       const cur = st.pills[p.key] || [];
-      h += `<div class="chips" data-pill="${p.key}"><button class="chip ${cur.length?'':'on'}" data-v="">${p.all||'Todos'}</button>${p.options.map(o => `<button class="chip ${cur.includes(o)?'on':''}" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+      h += `<div class="chips" data-pill="${p.key}"><button class="chip ${cur.length?'':'on'}" data-v="">${p.all||'Todos'}</button>${p.options.map(o => `<button class="chip ${cur.includes(o)?'on':''}" data-v="${esc(o)}">${esc(p.labels && p.labels[o] != null ? p.labels[o] : o)}</button>`).join('')}</div>`;
     });
     (cfg.selects||[]).forEach(s => { h += `<span data-sel="${s.key}"></span>`; });
     if (cfg.extra) h += cfg.extra;
@@ -878,30 +879,28 @@ function viewEstoque(v, f) {
           g.dias_estoque = g.estoque_disponivel > 0 && g.consumo_medio_dia > 0 ? Math.round(g.estoque_disponivel / g.consumo_medio_dia) : null;
           g.classificacao = classe(g._mcS, g._flS, g._semcS); g.mc_pct = g._flS > 0 ? Math.round(1000 * g._mcS / g._flS) / 10 : null; return g; });
       };
-      let agrupado = false, soRisco = false, soReserva = false;
-      const usaReserva = r => n(r.estoque_disponivel) <= 0 && (n(r.estoque_fulfillment) || 0) - (n(r.em_expedicao) || 0) > 0;
-      const aplicaExtra = () => tabela.setExtra(soRisco || soReserva ? (r => (!soRisco || r.risco_quebra) && (!soReserva || usaReserva(r))) : null);
-      const prep = rs => rs.map(r => ({...r, _niv: ordemNiv(r.nivel)}));
+      let agrupado = false;
+      const SITES = ['Risco de quebra','Usando reserva','Site abaixo','Fora do site','Sem controle','OK'];
+      const sitSite = r => r.no_site_ilimitado ? 'Sem controle' : r.no_site === null || r.no_site === undefined || (n(r.no_site) <= 0 && (n(r.estoque_fulfillment) || 0) - (n(r.em_expedicao) || 0) > 0) ? 'Fora do site' : r.risco_quebra ? 'Risco de quebra' : n(r.no_site) > n(r.estoque_disponivel) ? 'Usando reserva' : n(r.no_site) < n(r.estoque_disponivel) ? 'Site abaixo' : 'OK';
+      const usaReserva = r => r._site === 'Usando reserva';
+      const prep = rs => rs.map(r => ({...r, _niv: ordemNiv(r.nivel), _site: sitSite(r)}));
       const base = prep(rows);
-      const nRisco = rows.filter(r => r.risco_quebra).length, nReserva = rows.filter(r => r.status === 'Ativo' && usaReserva(r)).length;
+      const nSite = {}; base.filter(r => r.status === 'Ativo').forEach(r => { nSite[r._site] = (nSite[r._site] || 0) + 1; });
+      const siteOpts = SITES.filter(x => nSite[x] || x !== 'Sem controle'), siteLabels = Object.fromEntries(siteOpts.map(x => [x, `${x} (${nSite[x] || 0})`]));
       const statusOpts = [...new Set(rows.map(r => r.status))].sort();
       tabela = makeTable(ct, {
         rows: base, exportName:'estoque_posicao', search:['sku','nome_sku','nome_geral'], sort:{key:'_niv', dir:'asc'},
         initPills:{status:['Ativo']}, colsKey:'estoque_v2',
-        pills:[{key:'status', options:statusOpts, all:'Todos os status'}, {key:'curva', options:['A','B','C'], all:'Todas as curvas'}, {key:'nivel', options:NIVEIS, all:'Todos os níveis'}, {key:'classificacao', options:['Herói','Neutro','Ofensor','Sem custo','Sem venda'], all:'Toda margem'}],
+        pills:[{key:'status', options:statusOpts, all:'Todos os status'}, {key:'curva', options:['A','B','C'], all:'Todas as curvas'}, {key:'nivel', options:NIVEIS, all:'Todos os níveis'}, {key:'classificacao', options:['Herói','Neutro','Ofensor','Sem custo','Sem venda'], all:'Toda margem'}, {key:'_site', options:siteOpts, labels:siteLabels, all:'Todo o site'}],
         selects:[{key:'categoria',label:'Categoria'},{key:'linha',label:'Linha'},{key:'area_origem',label:'Área'}],
-        extra:`<label class="toggle"><input type="checkbox" data-risco> Risco de quebra (${nRisco})</label><label class="toggle" title="Disponível zerado, mas ainda há unidades no fulfillment: o item só segue vendendo se usar a reserva de emergência"><input type="checkbox" data-reserva> Usando a reserva (${nReserva})</label><label class="toggle"><input type="checkbox" data-agr> Agrupar por nome geral</label>`,
+        extra:`<label class="toggle"><input type="checkbox" data-agr> Agrupar por nome geral</label>`,
         onBar: bar => {
           const t = bar.querySelector('[data-agr]'); t.checked = agrupado;
           t.addEventListener('change', () => { agrupado = t.checked; tabela.setRows(agrupado ? prep(agrupar(rows)) : base); });
-          const rk = bar.querySelector('[data-risco]'); rk.checked = soRisco;
-          rk.addEventListener('change', () => { soRisco = rk.checked; aplicaExtra(); });
-          const rv = bar.querySelector('[data-reserva]'); rv.checked = soReserva;
-          rv.addEventListener('change', () => { soReserva = rv.checked; aplicaExtra(); });
         },
         rowClass: r => r.status === 'Ativo' && r.curva === 'A' && (r.nivel === 'FORA DE ESTOQUE' || r.nivel === 'BAIXO') ? 'neg' : '',
         columns:[
-          {key:'sku', label:'SKU', w:'wide', fixed:true, html:r => `<div class="skucell">${r.imagem_url ? `<img class="thumb" loading="lazy" src="${esc(r.imagem_url)}" alt="">` : '<span class="thumb ph">sem foto</span>'}<div><div class="cell-sku">${esc(r.sku)}</div>${r.risco_quebra ? '<span class="bdg b-fora" title="Site anuncia mais do que o disponível">risco de quebra</span>' : ''}${usaReserva(r) ? '<span class="bdg b-atencao" title="Disponível zerado; só há unidades na reserva de emergência">usando a reserva</span>' : ''}</div></div>`},
+          {key:'sku', label:'SKU', w:'wide', fixed:true, html:r => `<div class="skucell">${r.imagem_url ? `<img class="thumb" loading="lazy" src="${esc(r.imagem_url)}" alt="">` : '<span class="thumb ph">sem foto</span>'}<div><div class="cell-sku">${esc(r.sku)}</div>${r.risco_quebra ? '<span class="bdg b-fora" title="Site anuncia mais do que existe no fulfillment (fora o que está em expedição)">risco de quebra</span>' : ''}${usaReserva(r) ? '<span class="bdg b-atencao" title="Site anuncia mais do que o disponível, mas cabe no fulfillment: está vendendo a reserva de emergência">usando reserva</span>' : ''}</div></div>`},
           {key:'nome_sku', label:'Nome por SKU', w:'mid', html:r => `<span class="cell-nm">${esc(r.nome_sku)}</span>`},
           {key:'nome_geral', label:'Nome geral', w:'mid', html:r => `<span class="cell-nm">${esc(r.nome_geral)}</span>`},
           {key:'categoria', label:'Categoria'},
@@ -911,7 +910,7 @@ function viewEstoque(v, f) {
           {key:'em_expedicao', label:'Em<br>expedição', num:true, fmt:fInt},
           {key:'reserva', label:'Reserva de<br>emergência', num:true, fmt:fInt},
           {key:'estoque_disponivel', label:'Estoque<br>disponível', num:true, hl:true, fmt:fInt},
-          {key:'no_site', label:'No site', num:true, sort:r => r.no_site_ilimitado ? 1e9 : r.no_site, html:r => r.no_site_ilimitado ? `${n(r.no_site) ? fInt(r.no_site) + ' + ' : ''}<span class="bdg b-cinza" title="Anúncio sem controle de estoque na Nuvemshop">sem controle</span>` : (r.no_site === null || r.no_site === undefined ? '—' : `<span class="${r.risco_quebra ? 'neg-txt' : ''}">${fInt(r.no_site)}</span>`), csv:r => r.no_site_ilimitado ? 'sem controle' : r.no_site},
+          {key:'no_site', label:'No site', num:true, sort:r => r.no_site_ilimitado ? 1e9 : r.no_site, html:r => r.no_site_ilimitado ? `${n(r.no_site) ? fInt(r.no_site) + ' + ' : ''}<span class="bdg b-cinza" title="Anúncio sem controle de estoque na Nuvemshop">sem controle</span>` : (r.no_site === null || r.no_site === undefined ? '—' : `<span class="${r.risco_quebra ? 'neg-txt' : usaReserva(r) ? 'alerta-txt' : ''}">${fInt(r.no_site)}</span>`), csv:r => r.no_site_ilimitado ? 'sem controle' : r.no_site},
           {key:'consumo_medio_dia', label:'Consumo/<br>dia', num:true, fmt:v => n(v) === null ? '—' : n(v).toLocaleString('pt-BR',{maximumFractionDigits:2})},
           {key:'consumo_medio_mes', label:'Consumo/<br>mês', num:true, fmt:fInt},
           {key:'dias_estoque', label:'Dias de<br>estoque', num:true, html:r => { const d = n(r.dias_estoque); return d === null ? '—' : `<span class="${d < 15 ? 'neg-txt' : ''}">${fInt(d)}</span>`; }, csv:r => r.dias_estoque},
@@ -921,7 +920,7 @@ function viewEstoque(v, f) {
           {key:'ultima_entrada', label:'Última<br>entrada', fmt:fDate},
         ]
       });
-      ct.insertAdjacentHTML('beforeend', `<div class="foot-note" style="margin-top:14px">Estoque fulfillment = saldo do WMS hoje. Disponível = fulfillment − em expedição − reserva de emergência (10% do saldo, mínimo 5 unidades). Nível pelo disponível e pela curva (régua acima); fora de estoque = disponível zerado. No site = unidades cadastradas na Nuvemshop hoje, somando todos os anúncios do SKU (visíveis, não listados e ocultos). Em vermelho quando há risco de quebra. Risco de quebra = o site anuncia mais unidades do que o disponível. Usando a reserva = disponível zerado, mas ainda há unidades no fulfillment (fora as em expedição): o item segue vendendo só porque está consumindo a reserva de emergência. Consumo médio/dia = saídas da janela ÷ dias com estoque (mínimo 7); dias de estoque = disponível ÷ consumo/dia. Curva ABC = últimos 12 meses (Tiny), só produtos ativos. Margem = margem de contribuição de produto do SKU nas vendas da janela de consumo. Use "Colunas" para ocultar ou mostrar colunas (a escolha fica salva neste navegador).</div>`);
+      ct.insertAdjacentHTML('beforeend', `<div class="foot-note" style="margin-top:14px">Estoque fulfillment = saldo do WMS hoje. Disponível = fulfillment − em expedição − reserva de emergência (10% do saldo, mínimo 5 unidades). Nível pelo disponível e pela curva (régua acima); fora de estoque = disponível zerado. No site = unidades expostas na Nuvemshop hoje: anúncio principal + ofertas/anúncios ocultos + unidades comprometidas em kits (mesma regra do hub de estoque); atualiza junto com a carga da Nuvemshop. Situação no site: risco de quebra = o site anuncia mais do que existe no fulfillment (fora o que está em expedição); usando reserva = o site anuncia mais do que o disponível, mas ainda cabe no fulfillment, ou seja, está vendendo a reserva de emergência; site abaixo = o site anuncia menos do que o disponível; fora do site = sem anúncio ou anúncio zerado enquanto ainda há unidades no fulfillment; sem controle = anúncio sem controle de estoque. Consumo médio/dia = saídas da janela ÷ dias com estoque (mínimo 7); dias de estoque = disponível ÷ consumo/dia. Curva ABC = últimos 12 meses (Tiny), só produtos ativos. Margem = margem de contribuição de produto do SKU nas vendas da janela de consumo. Use "Colunas" para ocultar ou mostrar colunas (a escolha fica salva neste navegador).</div>`);
       if (matrizSel) { tabela.setFilter('curva', [matrizSel[0]]); tabela.setFilter('nivel', [matrizSel[1]]); }
     });
 
