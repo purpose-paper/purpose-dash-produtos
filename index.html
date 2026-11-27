@@ -222,6 +222,20 @@ td.mid{min-width:150px}
 .sim-acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
 .sim-msg{font-family:var(--ff-sans);font-size:12.5px;color:var(--erro)}
 .btn:disabled{opacity:.45;cursor:not-allowed}
+.site-link{background:none;border:0;padding:2px 4px;margin:-2px -4px;font:inherit;color:inherit;cursor:pointer;border-bottom:1px dashed var(--pp-bege);border-radius:3px}
+.site-link:hover{background:var(--pp-polen-deep)}
+.anp{position:fixed;z-index:60;width:min(640px,calc(100vw - 32px));max-height:min(520px,calc(100vh - 32px));display:flex;flex-direction:column;background:var(--pp-branco);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:0 14px 40px rgba(74,38,24,.25)}
+.anp-h{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:16px 18px 12px;border-bottom:1px solid var(--border)}
+.anp-h h4{font-family:var(--ff-serif);font-weight:400;font-size:18px;margin:0;color:var(--pp-marrom)}
+.anp-h .cell-nm{margin-top:3px}
+.anp-x{background:none;border:0;font-size:18px;line-height:1;cursor:pointer;color:var(--text-soft);padding:2px 6px}
+.anp-b{overflow:auto;padding:4px 18px 8px}
+.anp table{width:100%;border-collapse:collapse;font-family:var(--ff-sans);font-size:12.5px}
+.anp th{text-align:left;font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--text-soft);font-weight:600;padding:10px 6px 6px;border-bottom:1px solid var(--border);white-space:nowrap}
+.anp td{padding:9px 6px;border-bottom:1px solid var(--pp-polen-deep);vertical-align:top}
+.anp td.num,.anp th.num{text-align:right;font-variant-numeric:tabular-nums}
+.anp tr.zero td{color:var(--text-soft)}
+.anp-f{padding:10px 18px 14px;font-family:var(--ff-sans);font-size:12px;color:var(--text-soft);border-top:1px solid var(--border)}
 .empty{font-family:var(--ff-sans);font-size:13px;color:var(--text-soft);padding:24px;text-align:center}
 
 @media (max-width:1100px){.g6{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -1017,7 +1031,7 @@ function viewEstoque(v, f) {
           {key:'em_expedicao', label:'Em<br>expedição', num:true, fmt:fInt},
           {key:'reserva', label:'Reserva de<br>emergência', num:true, fmt:fInt},
           {key:'estoque_disponivel', label:'Estoque<br>disponível', num:true, hl:true, fmt:fInt, tip:'Disponível = fulfillment − em expedição − reserva de emergência. Considera também as unidades que estão inclusas em kits e caixas misteriosas: os itens dos kits saem deste mesmo estoque.'},
-          {key:'no_site', label:'No site', num:true, sort:r => r.no_site_ilimitado ? 1e9 : r.no_site, html:r => r.no_site_ilimitado ? `${n(r.no_site) ? fInt(r.no_site) + ' + ' : ''}<span class="bdg b-cinza" title="Anúncio sem controle de estoque na Nuvemshop">sem controle</span>` : (r.no_site === null || r.no_site === undefined ? '—' : `<span class="${r.risco_quebra ? 'neg-txt' : usaReserva(r) ? 'alerta-txt' : ''}">${fInt(r.no_site)}</span>`), csv:r => r.no_site_ilimitado ? 'sem controle' : r.no_site},
+          {key:'no_site', label:'No site', num:true, tip:'Clique no número para ver todos os anúncios da Nuvemshop em que o produto está: principal, ofertas/links não listados e kits ou caixas misteriosas.', sort:r => r.no_site_ilimitado ? 1e9 : r.no_site, html:r => { const v = r.no_site_ilimitado ? `${n(r.no_site) ? fInt(r.no_site) + ' + ' : ''}<span class="bdg b-cinza" title="Anúncio sem controle de estoque na Nuvemshop">sem controle</span>` : (r.no_site === null || r.no_site === undefined ? '—' : `<span class="${r.risco_quebra ? 'neg-txt' : usaReserva(r) ? 'alerta-txt' : ''}">${fInt(r.no_site)}</span>`); return r.sku && v !== '—' ? `<button type="button" class="site-link" data-anuncios="${esc(r.sku)}" title="Ver em quais anúncios este produto está">${v}</button>` : v; }, csv:r => r.no_site_ilimitado ? 'sem controle' : r.no_site},
           {key:'consumo_medio_dia', label:'Consumo/<br>dia', num:true, fmt:v => n(v) === null ? '—' : n(v).toLocaleString('pt-BR',{maximumFractionDigits:2})},
           {key:'consumo_medio_mes', label:'Consumo/<br>mês', num:true, fmt:fInt},
           {key:'dias_estoque', label:'Dias de<br>estoque', num:true, html:r => { const d = n(r.dias_estoque); return d === null ? '—' : `<span class="${d < 15 ? 'neg-txt' : ''}">${fInt(d)}</span>`; }, csv:r => r.dias_estoque},
@@ -1027,6 +1041,7 @@ function viewEstoque(v, f) {
           {key:'ultima_entrada', label:'Última<br>entrada', fmt:fDate},
         ]
       });
+      ct.addEventListener('click', e => { const b = e.target.closest('[data-anuncios]'); if (b) { e.stopPropagation(); abrirAnuncios(b, b.dataset.anuncios, rows.find(x => x.sku === b.dataset.anuncios)); } });
       ct.insertAdjacentHTML('beforeend', `<div class="foot-note" style="margin-top:14px">Estoque fulfillment = saldo do WMS hoje. Disponível = fulfillment − em expedição − reserva de emergência (10% do saldo, mínimo 5 unidades). Nível pelo disponível e pela curva (régua acima); fora de estoque = disponível zerado. No site = unidades expostas na Nuvemshop hoje: anúncio principal + ofertas/anúncios ocultos + unidades comprometidas em kits (mesma regra do hub de estoque); atualiza junto com a carga da Nuvemshop. Situação no site: risco de quebra = o site anuncia mais do que existe no fulfillment (fora o que está em expedição); usando reserva = o site anuncia mais do que o disponível, mas ainda cabe no fulfillment, ou seja, está vendendo a reserva de emergência; site abaixo = o site anuncia menos do que o disponível; fora do site = sem anúncio ou anúncio zerado enquanto ainda há unidades no fulfillment; sem controle = anúncio sem controle de estoque. Consumo médio/dia = saídas da janela ÷ dias com estoque (mínimo 7); dias de estoque = disponível ÷ consumo/dia. Curva ABC = últimos 12 meses (Tiny), só produtos ativos. Margem = margem de contribuição de produto do SKU nas vendas da janela de consumo. Use "Colunas" para ocultar ou mostrar colunas (a escolha fica salva neste navegador).</div>`);
       if (matrizSel) { tabela.setFilter('curva', [matrizSel[0]]); tabela.setFilter('nivel', [matrizSel[1]]); }
     });
@@ -2208,6 +2223,42 @@ function mcBind(host) {
   });
 }
 
+
+/* ================= ANÚNCIOS DO PRODUTO (popover do "No site") ================= */
+function abrirAnuncios(anchor, sku, row) {
+  document.querySelectorAll('.anp').forEach(x => x.remove());
+  const p = el(`<div class="anp" role="dialog" aria-label="Anúncios do produto"><div class="anp-h"><div><h4>Anúncios de <em>${esc(sku)}</em></h4><div class="cell-nm">${esc(row ? row.nome_sku : '')}</div></div><button class="anp-x" type="button" aria-label="Fechar">✕</button></div><div class="anp-b"><div class="sk" style="min-height:80px;margin:12px 0"></div></div></div>`);
+  document.body.appendChild(p);
+  const pos = () => { const r = anchor.getBoundingClientRect(), w = p.offsetWidth, h = p.offsetHeight;
+    let x = Math.min(window.innerWidth - w - 16, Math.max(16, r.right - w)), y = r.bottom + 8;
+    if (y + h > window.innerHeight - 16) y = Math.max(16, r.top - h - 8);
+    p.style.left = x + 'px'; p.style.top = y + 'px'; };
+  pos();
+  const fechar = () => { p.remove(); document.removeEventListener('mousedown', fora, true); document.removeEventListener('keydown', esc_); window.removeEventListener('scroll', fecharScroll, true); };
+  const fora = e => { if (!p.contains(e.target) && !anchor.contains(e.target)) fechar(); };
+  const esc_ = e => { if (e.key === 'Escape') fechar(); };
+  const fecharScroll = e => { if (!p.contains(e.target)) fechar(); };
+  p.querySelector('.anp-x').addEventListener('click', fechar);
+  setTimeout(() => { document.addEventListener('mousedown', fora, true); document.addEventListener('keydown', esc_); window.addEventListener('scroll', fecharScroll, true); }, 0);
+  const TIPO = {normal:'Principal', oferta:'Oferta / outro anúncio', kit:'Kit / caixa'};
+  const VIS = {visible:['Visível','b-heroi'], unlisted:['Não listado','b-atencao'], hidden:['Oculto','b-cinza']};
+  rpc('produto_anuncios', {p_sku: sku}).then(an => {
+    if (!document.body.contains(p)) return;
+    const b = p.querySelector('.anp-b');
+    if (!an.length) { b.innerHTML = '<div class="empty">Este produto não aparece em nenhum anúncio da Nuvemshop.</div>'; pos(); return; }
+    const tot = an.reduce((t, a) => t + (n(a.unidades) || 0), 0), ativos = an.filter(a => n(a.estoque) > 0 || a.estoque === null).length, kits = an.filter(a => a.tipo === 'kit').length;
+    p.querySelector('.anp-h .cell-nm').innerHTML = `${esc(row ? row.nome_sku + ' · ' : '')}${an.length} anúncios (${kits} kits/caixas) · ${ativos} com estoque · <strong>${fInt(tot)} unidades no site</strong>`;
+    b.innerHTML = `<table><thead><tr><th>Anúncio</th><th>Tipo</th><th>Visibilidade</th><th class="num">Estoque do<br>anúncio</th><th class="num">Unidades<br>deste SKU</th></tr></thead><tbody>${an.map(a => { const v = VIS[a.visibilidade] || [a.visibilidade || (a.publicado ? 'Visível' : 'Oculto'), 'b-cinza'];
+      const q = n(a.qtd_por_anuncio) || 1;
+      return `<tr class="${n(a.estoque) === 0 ? 'zero' : ''}"><td><div style="color:var(--text)">${esc(a.nome || '—')}</div><div class="cell-nm">${a.variacao ? esc(a.variacao) + ' · ' : ''}SKU ${esc(a.sku_anuncio)} · ID ${esc(String(a.produto_id || ''))}</div></td>
+        <td>${TIPO[a.tipo] || esc(a.tipo)}${a.tipo === 'kit' && q !== 1 ? `<div class="cell-nm">${fInt(q)} un. por kit</div>` : ''}</td>
+        <td><span class="bdg ${v[1]}">${esc(v[0])}</span></td>
+        <td class="num">${a.estoque === null ? '<span class="bdg b-cinza">sem controle</span>' : fInt(a.estoque)}</td>
+        <td class="num"><strong>${a.estoque === null ? '—' : fInt(a.unidades)}</strong></td></tr>`; }).join('')}</tbody></table>`;
+    p.insertAdjacentHTML('beforeend', `<div class="anp-f">Busque pelo SKU do anúncio na Nuvemshop para achar kits e caixas: eles não aparecem quando se procura pelo nome do produto. Dados da última carga da Nuvemshop${an[0].atualizado_em ? ' (' + new Date(an[0].atualizado_em).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) + ')' : ''}.</div>`);
+    pos();
+  }).catch(e => { const b = p.querySelector('.anp-b'); if (b) b.innerHTML = `<div class="err">Não foi possível carregar os anúncios: ${esc(e.message || '')}</div>`; });
+}
 </script>
 </body>
 </html>
